@@ -12,6 +12,7 @@ tags:
 This project uses a [Concerto model](https://concerto.accordproject.org) to define the nodes and edges in a Neo4J graph database and uses the model to validate the properties on the nodes.
 
 ![demo](demo.png)
+[Demo](src/demo/index.ts)
 
 In a few lines of code you can define a Concerto data model validated graph and perform a vector similarity search over
 nodes with text content.
