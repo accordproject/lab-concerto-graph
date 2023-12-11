@@ -1,6 +1,7 @@
 import { ClassDeclaration, Factory, Introspector, ModelManager, RelationshipDeclaration, Serializer } from "@accordproject/concerto-core";
 import neo4j, { DateTime, Driver, ManagedTransaction, Session } from 'neo4j-driver';
 import * as crypto from 'crypto'
+import OpenAI from "openai";
 
 type VectorIndex = {
     property: string;
@@ -10,6 +11,28 @@ type VectorIndex = {
 
 export type Context = {
     session: Session;
+}
+
+type EmbeddingCacheNode = {
+    $class: string;
+    embedding: Array<number>;
+    content: string;
+}
+
+export type SimilarityResult = {
+    identifier: string;
+    content: string;
+    score: number;
+}
+
+export async function getOpenAiEmbedding(text:string) : Promise<Array<number>> {
+    const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
+    const response = await openai.embeddings.create({
+        model: "text-embedding-ada-002",
+        input: text,
+        encoding_format: "float",
+  });
+  return response.data[0].embedding;
 }
 
 export function getObjectChecksum(obj: PropertyBag) {
@@ -36,6 +59,7 @@ export type GraphModelOptions = {
     NEO4J_URL?: string;
     NEO4J_USER?: string;
     NEO4J_PASS?: string;
+    logQueries?: boolean;
 }
 
 export const ROOT_NAMESPACE = 'org.accordproject.graph@1.0.0';
@@ -207,7 +231,7 @@ export class GraphModel {
      * @param embeddings the embeddings for the text to search for
      * @returns
      */
-    async similarityQueryFromEmbedding(typeName: string, propertyName: string, count: number, embedding) {
+    async similarityQueryFromEmbedding(typeName: string, propertyName: string, embedding, count: number) : Promise<Array<SimilarityResult>> {
         const decl = this.getGraphNodeDeclaration(typeName);
         const vectorProperty = decl.getProperty(propertyName);
         if (!vectorProperty) {
@@ -216,12 +240,12 @@ export class GraphModel {
         // check this is a vector index property
         const vectorIndex = this.getPropertyVectorIndex(vectorProperty);
         const index = this.getPropertyVectorIndexName(decl, vectorProperty);
-        const q = `MATCH (l:${typeName})
+        const q = `MATCH (l:${decl.getName()})
     CALL db.index.vector.queryNodes('${index}', ${count}, ${JSON.stringify(embedding)} )
     YIELD node AS similar, score
     MATCH (similar)
-    RETURN similar.identifier as identifier, similar.${vectorIndex.property} as content, score limit ${count}`
-        const queryResult = await this.query(q)
+    RETURN similar.identifier as identifier, similar.${vectorIndex.property} as content, score limit ${count}`;
+        const queryResult = await this.query(q);
         return queryResult ? queryResult.records.map(v => {
             return {
                 identifier: v.get('identifier'),
@@ -232,15 +256,19 @@ export class GraphModel {
     }
 
     async query(cypher: string, parameters?: PropertyBag, tx?: ManagedTransaction) {
+        if(this.options.logQueries) {
+            this.options.logger?.log(cypher);
+        }
         if (tx) {
             return tx.run(cypher, parameters)
         }
         else {
             const { session } = await this.openSession();
-            await session.executeRead(async tx => {
+            const result = await session.executeRead(async tx => {
                 return tx.run(cypher, parameters);
             })
             await session.close();
+            return result;
         }
     }
 
@@ -255,7 +283,7 @@ export class GraphModel {
      */
     async mergeNode(transaction: ManagedTransaction, typeName: string, properties: PropertyBag) {
         const decl = this.getGraphNodeDeclaration(typeName);
-        const newProperties = this.validateAndTransformProperties(decl, properties);
+        const newProperties = await this.validateAndTransformProperties(transaction, decl, properties);
         const id = newProperties.identifier;
         if (!id) {
             throw new Error(`Cannot merge ${typeName} without an identifier property`);
@@ -299,7 +327,7 @@ export class GraphModel {
      * @param text 
      * @returns Promise<QueryResult<RecordShape>
      */
-    private async mergeEmbeddingCacheNode(transaction, text: string) {
+    private async mergeEmbeddingCacheNode(transaction, text: string) : Promise<EmbeddingCacheNode> {
         const embeddingId = getTextChecksum(text);
         const queryResult = await this.query('MATCH (n:EmbeddingCacheNode{identifier:$id}) RETURN n',
             { id: embeddingId }, transaction);
@@ -311,7 +339,7 @@ export class GraphModel {
             this.options.logger?.log('EmbeddingCacheNode cache miss');
             const embedding = await this.options.embeddingFunction(text);
             const nodeProperties = { identifier: embeddingId, embedding, content: text };
-            await this.mergeNode(transaction, 'EmbeddingCacheNode', nodeProperties);
+            await this.mergeNode(transaction, `${ROOT_NAMESPACE}.EmbeddingCacheNode`, nodeProperties);
             this.options.logger?.log(`Created cache node ${embeddingId}`);
             return { $class: `${ROOT_NAMESPACE}.EmbeddingCacheNode`, ...nodeProperties };
         }
@@ -320,30 +348,25 @@ export class GraphModel {
         }
     }
 
-    async similarityQuery(typeName: string, propertyName: string, count: number, searchText) {
-        if (this.options.embeddingFunction) {
-            const context = await this.openSession();
-            const transaction = await context.session.beginTransaction();
-            try {
-                const textContentNode = await this.mergeEmbeddingCacheNode(transaction, searchText);
-                transaction.commit();
-                if (!textContentNode.embedding) {
-                    throw new Error(`Internal error. Failed to get embedding for ${searchText}`);
-                }
-                const result = this.similarityQueryFromEmbedding(typeName, propertyName, count, textContentNode.embedding);
-                return result;
+    async similarityQuery(typeName: string, propertyName: string, searchText:string, count: number) : Promise<Array<SimilarityResult>> {
+        const context = await this.openSession();
+        const transaction = await context.session.beginTransaction();
+        try {
+            const textContentNode = await this.mergeEmbeddingCacheNode(transaction, searchText);
+            transaction.commit();
+            if (!textContentNode.embedding) {
+                throw new Error(`Internal error. Failed to get embedding for ${searchText}`);
             }
-            catch (err) {
-                this.options.logger?.log((err as object).toString());
-                transaction?.rollback();
-            }
+            return this.similarityQueryFromEmbedding(typeName, propertyName, textContentNode.embedding, count);
         }
-        else {
-            return [];
+        catch (err) {
+            this.options.logger?.log((err as object).toString());
+            transaction?.rollback();
+            throw err;
         }
     }
 
-    private validateAndTransformProperties(decl: ClassDeclaration, properties: PropertyBag): PropertyBag {
+    private async validateAndTransformProperties(transaction, decl: ClassDeclaration, properties: PropertyBag): Promise<PropertyBag> {
         const factory = new Factory(this.modelManager);
         const serializer = new Serializer(factory, this.modelManager);
         const result = serializer.fromJSON({
@@ -356,29 +379,34 @@ export class GraphModel {
 
         const keys = Object.keys(properties)
         const newProperties = {};
-        keys.forEach((key) => {
+        for(let n=0; n < keys.length; n++) {
+            const key = keys[n];
             if(key !== '$class') {
                 const value = properties[key];
                 const property = decl.getProperty(key);
-                if(!property) {
-                    throw new Error(`Failed to find property ${key} in ${JSON.stringify(properties)}`);
+                const embeddingDecorator = property.getDecorator('embedding');
+                if(embeddingDecorator && this.options.embeddingFunction) {
+                    if(typeof value !== 'string') {
+                        throw new Error(`Can only calculate embedding for string properties`);
+                    }
+                    const cacheNode = await this.mergeEmbeddingCacheNode(transaction, value as string);
+                    newProperties['embedding'] = cacheNode.embedding;
+                    newProperties[key] = value;
                 }
-                if (property.getType() === 'DateTime') {
+                else if (property.getType() === 'DateTime') {
                     newProperties[key] = DateTime.fromStandardDate(new Date(value as string))
-                } else if (value !== null && typeof value === 'object') {
+                } else if (value !== null && !Array.isArray(value) && typeof value === 'object') {
                     const propertyDecl = this.modelManager.getType(property.getFullyQualifiedTypeName());
-                    const childValue = this.validateAndTransformProperties(propertyDecl, value as PropertyBag);
+                    const childValue = this.validateAndTransformProperties(transaction, propertyDecl, value as PropertyBag);
                     Object.keys(childValue).forEach( childKey => {
                         newProperties[`${key}_${childKey}`] = childValue[childKey];
-                    })
-                } else if (key === '$class') {
-                    // ignore
+                    });
                 }
                 else {
                     newProperties[key] = value;
                 }    
             }
-        })
+        }
         return newProperties;
     }
 }
