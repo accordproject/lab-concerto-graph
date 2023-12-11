@@ -65,8 +65,9 @@ Runtime result:
 
 ### GraphDB
 
-- NEO4J_URL: <optional> the NEO4J URL. If not set, no data will be written to the agreement graph.
-- NEO4J_PASS: <optional> the neo4j password.
+- NEO4J_URL: the NEO4J URL. E.g. `neo4j+s://<DB_NAME>.databases.neo4j.io` if you are using AuraDB.
+- NEO4J_PASS: your neo4j password.
+- NEO4J_USER: <optional> defaults to `neo4j`
 
 ### Text Embeddings
 - OPENAI_API_KEY: <optional> the OpenAI API key. If not set embeddings are not computed and written to the agreement graph and similarity search is not possible.

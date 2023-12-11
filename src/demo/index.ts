@@ -55,7 +55,7 @@ async function run() {
     NEO4J_URL: process.env.NEO4J_URL,
     logger: console,
     logQueries: false,
-    embeddingFunction: getOpenAiEmbedding
+    embeddingFunction: process.env.OPENAI_API_KEY ? getOpenAiEmbedding : undefined
   }
   const graphModel = new GraphModel(MODEL, options);  
   await graphModel.connect();
@@ -100,9 +100,12 @@ async function run() {
     await graphModel.mergeNode(transaction, `${NS}.Actor`, {identifier: 'Johnny Depp'} );
     await graphModel.mergeRelationship(transaction, `${NS}.Actor`, 'Johnny Depp', `${NS}.Movie`, 'Fear and Loathing in Las Vegas', 'actedIn' );
   });
-  const search = 'Working in a boring job and looking for love.';
-  const results = await graphModel.similarityQuery(`${NS}.Movie`, 'embedding', search, 3);
-  console.log(results);
+  if(process.env.OPENAI_API_KEY) {
+    const search = 'Working in a boring job and looking for love.';
+    console.log(`Searching for movies related to: '${search}'`);
+    const results = await graphModel.similarityQuery(`${NS}.Movie`, 'embedding', search, 3);
+    console.log(results);  
+  }
   await graphModel.closeSession(context);
   console.log('done');
 }
