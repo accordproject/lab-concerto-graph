@@ -1,15 +1,15 @@
 {
-  "name": "lab-concerto-graph",
+  "name": "@accordproject/concerto-graph",
   "version": "1.0.0",
   "description": "Concerto Graph",
-  "main": "dist/demo/index.js",
+  "main": "dist/graphmodel.js",
   "type": "module",
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "scripts": {
     "prebuild": "npx eslint src/**/*.ts",
     "build": "tsc",
     "prestart": "npm run build",
-    "start": "node .",
+    "start": "node dist/demo/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
