@@ -99,11 +99,10 @@ async function run() {
 
     await graphModel.mergeNode(transaction, `${NS}.Actor`, {identifier: 'Johnny Depp'} );
     await graphModel.mergeRelationship(transaction, `${NS}.Actor`, 'Johnny Depp', `${NS}.Movie`, 'Fear and Loathing in Las Vegas', 'actedIn' );
-
-    const search = 'Working in a boring job and looking for love.';
-    const results = await graphModel.similarityQuery(`${NS}.Movie`, 'embedding', search, 3);
-    console.log(results);
   });
+  const search = 'Working in a boring job and looking for love.';
+  const results = await graphModel.similarityQuery(`${NS}.Movie`, 'embedding', search, 3);
+  console.log(results);
   await graphModel.closeSession(context);
   console.log('done');
 }

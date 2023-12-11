@@ -397,7 +397,7 @@ export class GraphModel {
                     newProperties[key] = DateTime.fromStandardDate(new Date(value as string))
                 } else if (value !== null && !Array.isArray(value) && typeof value === 'object') {
                     const propertyDecl = this.modelManager.getType(property.getFullyQualifiedTypeName());
-                    const childValue = this.validateAndTransformProperties(transaction, propertyDecl, value as PropertyBag);
+                    const childValue:PropertyBag = await this.validateAndTransformProperties(transaction, propertyDecl, value as PropertyBag);
                     Object.keys(childValue).forEach( childKey => {
                         newProperties[`${key}_${childKey}`] = childValue[childKey];
                     });
