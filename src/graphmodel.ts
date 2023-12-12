@@ -106,9 +106,9 @@ export class GraphModel {
         }
     }
 
-    async openSession(): Promise<Context> {
+    async openSession(database='neo4j'): Promise<Context> {
         if (this.driver) {
-            const session = this.driver.session({ database: 'neo4j' })
+            const session = this.driver.session({ database })
             return { session };
         }
         throw new Error('No neo4j driver!');
@@ -402,7 +402,6 @@ export class GraphModel {
         if (result.getFullyQualifiedType() !== decl.getFullyQualifiedName()) {
             throw new Error(`Deserialized ${result.getFullyQualifiedType()} but expected ${decl.getFullyQualifiedName()}`);
         }
-
         const keys = Object.keys(properties)
         const newProperties = {};
         for(let n=0; n < keys.length; n++) {
@@ -433,9 +432,11 @@ export class GraphModel {
                     }
                     else {
                         Object.keys(value).forEach( childKey => {
-                            const childValue = value[childKey];
-                            // TODO DCS - support map values that are objects...
-                            newProperties[`${key}_${childKey}`] = childValue;
+                            if(key !== '$class') {
+                                const childValue = value[childKey];
+                                // TODO DCS - support map values that are objects...
+                                newProperties[`${key}_${childKey}`] = childValue;    
+                            }
                         });
                     }
                 }
