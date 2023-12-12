@@ -1,4 +1,4 @@
-import { ClassDeclaration, Factory, Introspector, ModelManager, RelationshipDeclaration, Serializer } from "@accordproject/concerto-core";
+import { ClassDeclaration, Factory, Introspector, ModelManager, ModelUtil, RelationshipDeclaration, Serializer } from "@accordproject/concerto-core";
 import neo4j, { DateTime, Driver, ManagedTransaction, Session } from 'neo4j-driver';
 import * as crypto from 'crypto'
 import OpenAI from "openai";
@@ -68,8 +68,8 @@ concept GraphNode identified by identifier {
     o String identifier
 }
 concept EmbeddingCacheNode extends GraphNode {
-    @vector_index("content", 1536, "COSINE")
     o Double[] embedding
+    @vector_index("embedding", 1536, "COSINE")
     o String content  
 }
 `;
@@ -83,12 +83,17 @@ export class GraphModel {
     modelManager: ModelManager;
     driver: Driver | undefined = undefined;
     options: GraphModelOptions;
+    defaultNamespace: string|undefined;
 
-    constructor(graphModel: string, options: GraphModelOptions) {
+    constructor(graphModels: Array<string>, options: GraphModelOptions) {
         this.options = options;
         this.modelManager = new ModelManager({ strict: true, enableMapType: true });
         this.modelManager.addCTOModel(ROOT_MODEL, 'root.cto');
-        this.modelManager.addCTOModel(graphModel, 'model.cto');
+        graphModels.forEach( (model, index) => {
+            const mf = this.modelManager.addCTOModel(model, `model-${index}.cto`, true);
+            this.defaultNamespace = mf.getNamespace();
+        })
+        this.modelManager.validateModelFiles();
     }
 
     async connect() {
@@ -113,7 +118,15 @@ export class GraphModel {
         context.session.close();
     }
 
-    private getGraphNodeDeclaration(fqn: string) {
+    private getFullyQualifiedType(type:string) {
+        const typeNs = ModelUtil.getNamespace(type);
+        const typeShortName = ModelUtil.getShortName(type);
+        const ns = typeNs.length > 0 ? typeNs : this.defaultNamespace;
+        return ModelUtil.getFullyQualifiedName(ns ? ns : '',typeShortName);
+    }
+
+    private getGraphNodeDeclaration(typeName: string) {
+        const fqn = this.getFullyQualifiedType(typeName);
         const decl = this.modelManager.getType(fqn);
         const superTypesNames = decl.getAllSuperTypeDeclarations().map(s => s.getFullyQualifiedName());
         if (!superTypesNames.includes('org.accordproject.graph@1.0.0.GraphNode')) {
@@ -150,8 +163,21 @@ export class GraphModel {
         if (typeof args[2] !== 'string') {
             throw new Error(`@vector_index decorator on property ${property.getFullyQualifiedName()} does not have a second argument that is a string`);
         }
+
+        if(property.getType() !== 'String') {
+            throw new Error(`@vector_index decorator on property ${property.getFullyQualifiedName()} is invalid. Can only be added to String properties.`);
+        }
+        const propertyName = property.getDecorator('vector_index').getArguments()[0] as unknown as string;
+        const embeddingProperty = property.getParent().getProperty(propertyName);
+        if(!embeddingProperty) {
+            throw new Error(`@vector_index decorator on property ${property.getFullyQualifiedName()} is invalid. References the property ${propertyName} which does not exist.`);
+        }
+
+        if(embeddingProperty.getType() !== 'Double' && !embeddingProperty.isArray() ) {
+            throw new Error(`@vector_index decorator on property ${property.getFullyQualifiedName()} is invalid. It references the property ${propertyName} but the property is not Double[].`);
+        }
         return {
-            property: property.getDecorator('vector_index').getArguments()[0] as unknown as string,
+            property: propertyName,
             size: property.getDecorator('vector_index').getArguments()[1] as unknown as number,
             type: property.getDecorator('vector_index').getArguments()[2] as unknown as string,
         }
@@ -207,7 +233,7 @@ export class GraphModel {
                     const vectorProperty = vectorProperties[i];
                     const vectorIndex = this.getPropertyVectorIndex(vectorProperty);
                     const indexName = this.getPropertyVectorIndexName(graphNode, vectorProperty);
-                    await tx.run(`CALL db.index.vector.createNodeIndex("${indexName}", "${graphNode.getName()}", "${vectorProperty.getName()}", ${vectorIndex.size}, "${vectorIndex.type}")`);
+                    await tx.run(`CALL db.index.vector.createNodeIndex("${indexName}", "${graphNode.getName()}", "${vectorIndex.property}", ${vectorIndex.size}, "${vectorIndex.type}")`);
                 }
             }
         })
@@ -238,14 +264,14 @@ export class GraphModel {
             throw new Error(`${typeName} does not have a property ${propertyName}`);
         }
         // check this is a vector index property
-        const vectorIndex = this.getPropertyVectorIndex(vectorProperty);
+        this.getPropertyVectorIndex(vectorProperty);
         const index = this.getPropertyVectorIndexName(decl, vectorProperty);
         const q = `MATCH (l:${decl.getName()})
     CALL db.index.vector.queryNodes('${index}', ${count}, ${JSON.stringify(embedding)} )
     YIELD node AS similar, score
     MATCH (similar)
-    RETURN similar.identifier as identifier, similar.${vectorIndex.property} as content, score limit ${count}`;
-        const queryResult = await this.query(q);
+    RETURN similar.identifier as identifier, similar.${propertyName} as content, score limit ${count}`;
+    const queryResult = await this.query(q);
         return queryResult ? queryResult.records.map(v => {
             return {
                 identifier: v.get('identifier'),
@@ -384,13 +410,15 @@ export class GraphModel {
             if(key !== '$class') {
                 const value = properties[key];
                 const property = decl.getProperty(key);
-                const embeddingDecorator = property.getDecorator('embedding');
-                if(embeddingDecorator && this.options.embeddingFunction) {
+                const embeddingDecorator = property.getDecorator('vector_index');
+                if(decl.getFullyQualifiedName() !== `${ROOT_NAMESPACE}.EmbeddingCacheNode` && 
+                    embeddingDecorator && this.options.embeddingFunction) {
+                    const vectorIndex = this.getPropertyVectorIndex(property);
                     if(typeof value !== 'string') {
                         throw new Error(`Can only calculate embedding for string properties`);
                     }
                     const cacheNode = await this.mergeEmbeddingCacheNode(transaction, value as string);
-                    newProperties['embedding'] = cacheNode.embedding;
+                    newProperties[vectorIndex.property] = cacheNode.embedding;
                     newProperties[key] = value;
                 }
                 else if (property.getType() === 'DateTime') {

@@ -10,7 +10,7 @@ describe('GraphModel', () => {
                 NEO4J_URL: 'Pasta',
                 NEO4J_PASS: 'pasta',
             }
-            const graphModel = new GraphModel(cto, options);
+            const graphModel = new GraphModel([cto], options);
             expect(graphModel).not.toBeNull()
         })
     })
