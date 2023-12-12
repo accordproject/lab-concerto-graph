@@ -3,13 +3,12 @@
   "version": "1.0.0",
   "description": "Concerto Graph",
   "main": "dist/graphmodel.js",
-  "type": "module",
   "license": "Apache-2.0",
   "scripts": {
     "prebuild": "npx eslint src/**/*.ts",
     "build": "tsc",
     "prestart": "npm run build",
-    "start": "node dist/demo/index.js",
+    "start": "node dist/src/demo/index.js",
     "test": "jest",
     "coverage": "npx jest --coverage"
   },

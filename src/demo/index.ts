@@ -16,8 +16,14 @@ concept Address {
   o String country
 }
 
+scalar PersonName extends String
+scalar PersonEmail extends String
+map AddressBook {
+  o PersonName
+  o PersonEmail
+}
+
 concept Person extends GraphNode {
-  o Address address optional
   @label("ACTED_IN")
   --> Movie[] actedIn optional
   @label("DIRECTED")
@@ -31,6 +37,8 @@ concept Director extends Person {
 }
 
 concept User extends Person {
+  o Address address
+  o AddressBook addressBook
   @label("RATED")
   --> Movie[] ratedMovies optional
 }
@@ -73,6 +81,9 @@ async function run() {
       state: 'CO',
       country: 'USA'
     };
+    const addressBook = {
+      'Dan' : 'dan@example.com'
+    };
     await graphModel.mergeNode(transaction, `${NS}.Movie`, {identifier: 'Brazil', summary: 'The film centres on Sam Lowry, a low-ranking bureaucrat trying to find a woman who appears in his dreams while he is working in a mind-numbing job and living in a small apartment, set in a dystopian world in which there is an over-reliance on poorly maintained (and rather whimsical) machines'} );
     await graphModel.mergeNode(transaction, `${NS}.Movie`, {identifier: 'The Man Who Killed Don Quixote', summary: 'Instead of a literal adaptation, Gilliam\'s film was about "an old, retired, and slightly kooky nobleman named Alonso Quixano".'} );
     await graphModel.mergeNode(transaction, `${NS}.Movie`, {identifier: 'Fear and Loathing in Las Vegas', summary: 'Duke, under the influence of mescaline, complains of a swarm of giant bats, and inventories their drug stash. They pick up a young hitchhiker and explain their mission: Duke has been assigned by a magazine to cover the Mint 400 motorcycle race in Las Vegas. They bought excessive drugs for the trip, and rented a red Chevrolet Impala convertible.'} );
@@ -90,7 +101,7 @@ async function run() {
     await graphModel.mergeRelationship(transaction, `${NS}.Director`, 'Terry Gilliam', `${NS}.Movie`, 'The Man Who Killed Don Quixote', 'directed' );
     await graphModel.mergeRelationship(transaction, `${NS}.Director`, 'Terry Gilliam', `${NS}.Movie`, 'Fear and Loathing in Las Vegas', 'directed' );
 
-    await graphModel.mergeNode(transaction, `${NS}.User`, {identifier: 'Dan', address} );
+    await graphModel.mergeNode(transaction, `${NS}.User`, {identifier: 'Dan', address, addressBook} );
     await graphModel.mergeRelationship(transaction, `${NS}.User`, 'Dan', `${NS}.Movie`, 'Brazil', 'ratedMovies' );
     
     await graphModel.mergeNode(transaction, `${NS}.Actor`, {identifier: 'Jonathan Pryce'} );

@@ -397,10 +397,19 @@ export class GraphModel {
                     newProperties[key] = DateTime.fromStandardDate(new Date(value as string))
                 } else if (value !== null && !Array.isArray(value) && typeof value === 'object') {
                     const propertyDecl = this.modelManager.getType(property.getFullyQualifiedTypeName());
-                    const childValue:PropertyBag = await this.validateAndTransformProperties(transaction, propertyDecl, value as PropertyBag);
-                    Object.keys(childValue).forEach( childKey => {
-                        newProperties[`${key}_${childKey}`] = childValue[childKey];
-                    });
+                    if(!propertyDecl.isMapDeclaration()) {
+                        const childValue:PropertyBag = await this.validateAndTransformProperties(transaction, propertyDecl, value as PropertyBag);
+                        Object.keys(childValue).forEach( childKey => {
+                            newProperties[`${key}_${childKey}`] = childValue[childKey];
+                        });    
+                    }
+                    else {
+                        Object.keys(value).forEach( childKey => {
+                            const childValue = value[childKey];
+                            // TODO DCS - support map values that are objects...
+                            newProperties[`${key}_${childKey}`] = childValue;
+                        });
+                    }
                 }
                 else {
                     newProperties[key] = value;
