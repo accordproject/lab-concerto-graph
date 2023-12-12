@@ -6,7 +6,6 @@ const MODEL = `
 namespace ${NS}
 import org.accordproject.graph@1.0.0.{GraphNode}
 
-// show how a complex type gets flattened
 concept Address {
   o String line1
   o String line2 optional
@@ -14,6 +13,12 @@ concept Address {
   o String state
   o String zip optional
   o String country
+}
+
+// show how a complex type gets flattened
+concept ContactDetails {
+  o Address address
+  o String email
 }
 
 // show how maps get flattened
@@ -38,7 +43,7 @@ concept Director extends Person {
 }
 
 concept User extends Person {
-  o Address address
+  o ContactDetails contactDetails
   o AddressBook addressBook
   @label("RATED")
   --> Movie[] ratedMovies optional
@@ -81,8 +86,14 @@ async function run() {
       state: 'CO',
       country: 'USA'
     };
+    const contactDetails = {
+      $class: 'demo.graph@1.0.0.ContactDetails',
+      address,
+      email: 'dan@example.com'
+    };
     const addressBook = {
-      'Dan' : 'dan@example.com'
+      'Dan' : 'dan@example.com',
+      'Isaac' : 'isaac@example.com'
     };
     await graphModel.mergeNode(transaction, 'Movie', {identifier: 'Brazil', summary: 'The film centres on Sam Lowry, a low-ranking bureaucrat trying to find a woman who appears in his dreams while he is working in a mind-numbing job and living in a small apartment, set in a dystopian world in which there is an over-reliance on poorly maintained (and rather whimsical) machines'} );
     await graphModel.mergeNode(transaction, 'Movie', {identifier: 'The Man Who Killed Don Quixote', summary: 'Instead of a literal adaptation, Gilliam\'s film was about "an old, retired, and slightly kooky nobleman named Alonso Quixano".'} );
@@ -101,7 +112,7 @@ async function run() {
     await graphModel.mergeRelationship(transaction, 'Director', 'Terry Gilliam', 'Movie', 'The Man Who Killed Don Quixote', 'directed' );
     await graphModel.mergeRelationship(transaction, 'Director', 'Terry Gilliam', 'Movie', 'Fear and Loathing in Las Vegas', 'directed' );
 
-    await graphModel.mergeNode(transaction, 'User', {identifier: 'Dan', address, addressBook} );
+    await graphModel.mergeNode(transaction, 'User', {identifier: 'Dan', contactDetails, addressBook} );
     await graphModel.mergeRelationship(transaction, 'User', 'Dan', 'Movie', 'Brazil', 'ratedMovies' );
     
     await graphModel.mergeNode(transaction, 'Actor', {identifier: 'Jonathan Pryce'} );
