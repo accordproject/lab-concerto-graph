@@ -10,13 +10,18 @@
     "build": "tsc",
     "prestart": "npm run build",
     "start": "node dist/demo/index.js",
-    "test": "echo \"No test specified\" && exit 0",
-    "coverage": "echo \"No coverage tests specified\" && exit 0"
+    "test" : "npx jest",
+    "coverage": "npx jest --coverage"
   },
   "devDependencies": {
+    "@babel/core": "^7.23.6",
+    "@babel/preset-env": "^7.23.6",
+    "@babel/preset-typescript": "^7.23.3",
+    "@types/jest": "^29.5.11",
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
+    "babel-jest": "^29.7.0",
     "eslint": "^8.54.0",
     "eslint-config-standard-with-typescript": "^40.0.0",
     "eslint-plugin-import": "^2.29.0",
@@ -24,8 +29,10 @@
     "eslint-plugin-n": "^16.3.1",
     "eslint-plugin-prefer-arrow": "^1.2.3",
     "eslint-plugin-promise": "^6.1.1",
+    "jest": "^29.7.0",
     "nodemon": "^3.0.1",
-    "typescript": "^5.3.2"
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3"
   },
   "dependencies": {
     "@accordproject/concerto-core": "^3.15.0",
