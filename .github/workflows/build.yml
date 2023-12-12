@@ -88,7 +88,7 @@ jobs:
       - name: timestamp
         id: timestamp
         run: |
-          node ./scripts/timestamp.js
+          node ./scripts/timestamp.mjs
 
       - name: build and publish
         run: |
