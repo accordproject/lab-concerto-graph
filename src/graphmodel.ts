@@ -173,7 +173,7 @@ export class GraphModel {
             throw new Error(`@vector_index decorator on property ${property.getFullyQualifiedName()} is invalid. References the property ${propertyName} which does not exist.`);
         }
 
-        if(embeddingProperty.getType() !== 'Double' && !embeddingProperty.isArray() ) {
+        if(embeddingProperty.getType() !== 'Double' || !embeddingProperty.isArray() ) {
             throw new Error(`@vector_index decorator on property ${property.getFullyQualifiedName()} is invalid. It references the property ${propertyName} but the property is not Double[].`);
         }
         return {
