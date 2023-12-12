@@ -10,7 +10,8 @@
     "build": "tsc",
     "prestart": "npm run build",
     "start": "node dist/demo/index.js",
-    "test": "echo \"No test specified\" && exit 0"
+    "test": "echo \"No test specified\" && exit 0",
+    "coverage": "echo \"No coverage tests specified\" && exit 0"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
