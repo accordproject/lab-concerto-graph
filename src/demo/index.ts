@@ -55,6 +55,7 @@ concept Genre extends GraphNode {
 concept Movie extends GraphNode {
   o Double[] embedding optional
   @vector_index("embedding", 1536, "COSINE")
+  @fulltext_index
   o String summary optional
   @label("IN_GENRE")
   --> Genre[] genres optional
@@ -75,6 +76,7 @@ async function run() {
   await graphModel.dropIndexes();
   await graphModel.createConstraints();
   await graphModel.createVectorIndexes();
+  await graphModel.createFullTextIndexes();
   const context = await graphModel.openSession();
 
   const { session } = context;
@@ -122,6 +124,10 @@ async function run() {
     await graphModel.mergeNode(transaction, 'Actor', {identifier: 'Johnny Depp'} );
     await graphModel.mergeRelationship(transaction, 'Actor', 'Johnny Depp', 'Movie', 'Fear and Loathing in Las Vegas', 'actedIn' );
   });
+  const fullTextSearch = 'film';
+  console.log(`Full text search for movies with: '${fullTextSearch}'`);
+  const fullTextResults = await graphModel.fullTextQuery('Movie', fullTextSearch, 2);
+  console.log(fullTextResults);
   if(process.env.OPENAI_API_KEY) {
     const search = 'Working in a boring job and looking for love.';
     console.log(`Searching for movies related to: '${search}'`);

@@ -9,6 +9,10 @@ type VectorIndex = {
     type: string;
 }
 
+type FullTextIndex = {
+    properties: Array<string>;
+}
+
 export type Context = {
     session: Session;
 }
@@ -142,6 +146,13 @@ export class GraphModel {
                 .find(s => s.getFullyQualifiedName() === `${ROOT_NAMESPACE}.GraphNode`));
     }
 
+    private getFullTextIndex(decl) : FullTextIndex|undefined {
+        const properties = decl.getProperties()
+        .filter(p => p.getDecorator('fulltext_index'))
+        .map( p => p.getName());
+        return properties.length > 0 ? { properties } : undefined;
+    }
+
     private getPropertyVectorIndex(property): VectorIndex {
         const decorator = property.getDecorator('vector_index');
         if (!decorator) {
@@ -187,6 +198,10 @@ export class GraphModel {
         return `${decl.getName()}_${vectorProperty.getName()}`.toLowerCase();
     }
 
+    private getFullTextIndexName(decl) {
+        return `${decl.getName()}_fulltext`.toLowerCase();
+    }
+
     async dropIndexes() {
         this.options.logger?.log('Dropping indexes...');
         const { session } = await this.openSession();
@@ -199,6 +214,11 @@ export class GraphModel {
                 for (let i = 0; i < vectorProperties.length; i++) {
                     const vectorProperty = vectorProperties[i];
                     const indexName = this.getPropertyVectorIndexName(graphNode, vectorProperty);
+                    await tx.run(`DROP INDEX ${indexName} IF EXISTS`);
+                }
+                const fullTextIndex = this.getFullTextIndex(graphNode);
+                if(fullTextIndex) {
+                    const indexName = this.getFullTextIndexName(graphNode);
                     await tx.run(`DROP INDEX ${indexName} IF EXISTS`);
                 }
             }
@@ -239,6 +259,25 @@ export class GraphModel {
         })
         await session.close();
         this.options.logger?.log('Create vector indexes completed');
+    }
+
+    async createFullTextIndexes() {
+        this.options.logger?.log('Creating full text indexes...');
+        const { session } = await this.openSession();
+        await session.executeWrite(async tx => {
+            const graphNodes = this.getGraphNodeDeclarations();
+            for (let n = 0; n < graphNodes.length; n++) {
+                const graphNode = graphNodes[n];
+                const fullTextIndex = this.getFullTextIndex(graphNode);
+                if(fullTextIndex) {
+                    const indexName = this.getFullTextIndexName(graphNode);
+                    const props = fullTextIndex.properties.map( p => `n.${p}`);
+                    await tx.run(`CREATE FULLTEXT INDEX ${indexName} FOR (n:${graphNode.getName()}) ON EACH [${props.join(',')}];`);
+                }
+            }
+        })
+        await session.close();
+        this.options.logger?.log('Create full text indexes completed');
     }
 
     async deleteGraph() {
@@ -388,6 +427,34 @@ export class GraphModel {
         catch (err) {
             this.options.logger?.log((err as object).toString());
             transaction?.rollback();
+            throw err;
+        }
+    }
+
+    async fullTextQuery(typeName: string, searchText:string, count: number) {
+        try {
+            const graphNode = this.getGraphNodeDeclaration(typeName);
+            const fullTextIndex = this.getFullTextIndex(graphNode);
+            if(!fullTextIndex) {
+                throw new Error(`No full text index for properties of ${typeName}`);
+            }
+            const indexName = this.getFullTextIndexName(graphNode);
+            const props = fullTextIndex.properties.map( p => `node.${p}`);
+            props.push('node.identifier');
+            const q = `CALL db.index.fulltext.queryNodes("${indexName}", "${searchText}") YIELD node, score RETURN ${props.join(',')}, score limit ${count}`;
+            const queryResult = await this.query(q);
+            return queryResult ? queryResult.records.map(v => {
+                const result = {};
+                fullTextIndex.properties.forEach( p => {
+                    result[p] = v.get(`node.${p}`)
+                });
+                result['score'] = v.get('score');
+                result['identifier'] = v.get('node.identifier');
+                return result;
+            }) : [];
+        }
+        catch (err) {
+            this.options.logger?.log((err as object).toString());
             throw err;
         }
     }
