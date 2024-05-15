@@ -29,14 +29,14 @@ export type SimilarityResult = {
     score: number;
 }
 
-export async function getOpenAiEmbedding(text:string) : Promise<Array<number>> {
-    const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
+export async function getOpenAiEmbedding(text: string): Promise<Array<number>> {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const response = await openai.embeddings.create({
         model: "text-embedding-ada-002",
         input: text,
         encoding_format: "float",
-  });
-  return response.data[0].embedding;
+    });
+    return response.data[0].embedding;
 }
 
 export function getObjectChecksum(obj: PropertyBag) {
@@ -87,13 +87,13 @@ export class GraphModel {
     modelManager: ModelManager;
     driver: Driver | undefined = undefined;
     options: GraphModelOptions;
-    defaultNamespace: string|undefined;
+    defaultNamespace: string | undefined;
 
     constructor(graphModels: Array<string>, options: GraphModelOptions) {
         this.options = options;
         this.modelManager = new ModelManager({ strict: true, enableMapType: true });
         this.modelManager.addCTOModel(ROOT_MODEL, 'root.cto');
-        graphModels.forEach( (model, index) => {
+        graphModels.forEach((model, index) => {
             const mf = this.modelManager.addCTOModel(model, `model-${index}.cto`, true);
             this.defaultNamespace = mf.getNamespace();
         })
@@ -110,7 +110,7 @@ export class GraphModel {
         }
     }
 
-    async openSession(database='neo4j'): Promise<Context> {
+    async openSession(database = 'neo4j'): Promise<Context> {
         if (this.driver) {
             const session = this.driver.session({ database })
             return { session };
@@ -122,11 +122,11 @@ export class GraphModel {
         context.session.close();
     }
 
-    private getFullyQualifiedType(type:string) {
+    private getFullyQualifiedType(type: string) {
         const typeNs = ModelUtil.getNamespace(type);
         const typeShortName = ModelUtil.getShortName(type);
         const ns = typeNs.length > 0 ? typeNs : this.defaultNamespace;
-        return ModelUtil.getFullyQualifiedName(ns ? ns : '',typeShortName);
+        return ModelUtil.getFullyQualifiedName(ns ? ns : '', typeShortName);
     }
 
     private getGraphNodeDeclaration(typeName: string) {
@@ -146,10 +146,10 @@ export class GraphModel {
                 .find(s => s.getFullyQualifiedName() === `${ROOT_NAMESPACE}.GraphNode`));
     }
 
-    private getFullTextIndex(decl) : FullTextIndex|undefined {
+    private getFullTextIndex(decl): FullTextIndex | undefined {
         const properties = decl.getProperties()
-        .filter(p => p.getDecorator('fulltext_index'))
-        .map( p => p.getName());
+            .filter(p => p.getDecorator('fulltext_index'))
+            .map(p => p.getName());
         return properties.length > 0 ? { properties } : undefined;
     }
 
@@ -175,16 +175,16 @@ export class GraphModel {
             throw new Error(`@vector_index decorator on property ${property.getFullyQualifiedName()} does not have a second argument that is a string`);
         }
 
-        if(property.getType() !== 'String') {
+        if (property.getType() !== 'String') {
             throw new Error(`@vector_index decorator on property ${property.getFullyQualifiedName()} is invalid. Can only be added to String properties.`);
         }
         const propertyName = property.getDecorator('vector_index').getArguments()[0] as unknown as string;
         const embeddingProperty = property.getParent().getProperty(propertyName);
-        if(!embeddingProperty) {
+        if (!embeddingProperty) {
             throw new Error(`@vector_index decorator on property ${property.getFullyQualifiedName()} is invalid. References the property ${propertyName} which does not exist.`);
         }
 
-        if(embeddingProperty.getType() !== 'Double' || !embeddingProperty.isArray() ) {
+        if (embeddingProperty.getType() !== 'Double' || !embeddingProperty.isArray()) {
             throw new Error(`@vector_index decorator on property ${property.getFullyQualifiedName()} is invalid. It references the property ${propertyName} but the property is not Double[].`);
         }
         return {
@@ -217,7 +217,7 @@ export class GraphModel {
                     await tx.run(`DROP INDEX ${indexName} IF EXISTS`);
                 }
                 const fullTextIndex = this.getFullTextIndex(graphNode);
-                if(fullTextIndex) {
+                if (fullTextIndex) {
                     const indexName = this.getFullTextIndexName(graphNode);
                     await tx.run(`DROP INDEX ${indexName} IF EXISTS`);
                 }
@@ -269,9 +269,9 @@ export class GraphModel {
             for (let n = 0; n < graphNodes.length; n++) {
                 const graphNode = graphNodes[n];
                 const fullTextIndex = this.getFullTextIndex(graphNode);
-                if(fullTextIndex) {
+                if (fullTextIndex) {
                     const indexName = this.getFullTextIndexName(graphNode);
-                    const props = fullTextIndex.properties.map( p => `n.${p}`);
+                    const props = fullTextIndex.properties.map(p => `n.${p}`);
                     await tx.run(`CREATE FULLTEXT INDEX ${indexName} FOR (n:${graphNode.getName()}) ON EACH [${props.join(',')}];`);
                 }
             }
@@ -296,7 +296,7 @@ export class GraphModel {
      * @param embeddings the embeddings for the text to search for
      * @returns
      */
-    async similarityQueryFromEmbedding(typeName: string, propertyName: string, embedding, count: number) : Promise<Array<SimilarityResult>> {
+    async similarityQueryFromEmbedding(typeName: string, propertyName: string, embedding, count: number): Promise<Array<SimilarityResult>> {
         const decl = this.getGraphNodeDeclaration(typeName);
         const vectorProperty = decl.getProperty(propertyName);
         if (!vectorProperty) {
@@ -310,7 +310,7 @@ export class GraphModel {
     YIELD node AS similar, score
     MATCH (similar)
     RETURN similar.identifier as identifier, similar.${propertyName} as content, score limit ${count}`;
-    const queryResult = await this.query(q);
+        const queryResult = await this.query(q);
         return queryResult ? queryResult.records.map(v => {
             return {
                 identifier: v.get('identifier'),
@@ -321,7 +321,7 @@ export class GraphModel {
     }
 
     async query(cypher: string, parameters?: PropertyBag, tx?: ManagedTransaction) {
-        if(this.options.logQueries) {
+        if (this.options.logQueries) {
             this.options.logger?.log(cypher);
         }
         if (tx) {
@@ -392,7 +392,7 @@ export class GraphModel {
      * @param text 
      * @returns Promise<QueryResult<RecordShape>
      */
-    private async mergeEmbeddingCacheNode(transaction, text: string) : Promise<EmbeddingCacheNode> {
+    private async mergeEmbeddingCacheNode(transaction, text: string): Promise<EmbeddingCacheNode> {
         const embeddingId = getTextChecksum(text);
         const queryResult = await this.query('MATCH (n:EmbeddingCacheNode{identifier:$id}) RETURN n',
             { id: embeddingId }, transaction);
@@ -413,7 +413,7 @@ export class GraphModel {
         }
     }
 
-    async similarityQuery(typeName: string, propertyName: string, searchText:string, count: number) : Promise<Array<SimilarityResult>> {
+    async similarityQuery(typeName: string, propertyName: string, searchText: string, count: number): Promise<Array<SimilarityResult>> {
         const context = await this.openSession();
         const transaction = await context.session.beginTransaction();
         try {
@@ -431,21 +431,21 @@ export class GraphModel {
         }
     }
 
-    async fullTextQuery(typeName: string, searchText:string, count: number) {
+    async fullTextQuery(typeName: string, searchText: string, count: number) {
         try {
             const graphNode = this.getGraphNodeDeclaration(typeName);
             const fullTextIndex = this.getFullTextIndex(graphNode);
-            if(!fullTextIndex) {
+            if (!fullTextIndex) {
                 throw new Error(`No full text index for properties of ${typeName}`);
             }
             const indexName = this.getFullTextIndexName(graphNode);
-            const props = fullTextIndex.properties.map( p => `node.${p}`);
+            const props = fullTextIndex.properties.map(p => `node.${p}`);
             props.push('node.identifier');
             const q = `CALL db.index.fulltext.queryNodes("${indexName}", "${searchText}") YIELD node, score RETURN ${props.join(',')}, score limit ${count}`;
             const queryResult = await this.query(q);
             return queryResult ? queryResult.records.map(v => {
                 const result = {};
-                fullTextIndex.properties.forEach( p => {
+                fullTextIndex.properties.forEach(p => {
                     result[p] = v.get(`node.${p}`)
                 });
                 result['score'] = v.get('score');
@@ -471,45 +471,47 @@ export class GraphModel {
         }
         const keys = Object.keys(properties)
         const newProperties = {};
-        for(let n=0; n < keys.length; n++) {
+        for (let n = 0; n < keys.length; n++) {
             const key = keys[n];
-            if(key !== '$class') {
+            if (key !== '$class') {
                 const value = properties[key];
                 const property = decl.getProperty(key);
-                const embeddingDecorator = property.getDecorator('vector_index');
-                if(decl.getFullyQualifiedName() !== `${ROOT_NAMESPACE}.EmbeddingCacheNode` && 
-                    embeddingDecorator && this.options.embeddingFunction) {
-                    const vectorIndex = this.getPropertyVectorIndex(property);
-                    if(typeof value !== 'string') {
-                        throw new Error(`Can only calculate embedding for string properties`);
+                if (value !== undefined) {
+                    const embeddingDecorator = property.getDecorator('vector_index');
+                    if (decl.getFullyQualifiedName() !== `${ROOT_NAMESPACE}.EmbeddingCacheNode` &&
+                        embeddingDecorator && this.options.embeddingFunction) {
+                        const vectorIndex = this.getPropertyVectorIndex(property);
+                        if (typeof value !== 'string') {
+                            throw new Error(`Can only calculate embedding for string properties`);
+                        }
+                        const cacheNode = await this.mergeEmbeddingCacheNode(transaction, value as string);
+                        newProperties[vectorIndex.property] = cacheNode.embedding;
+                        newProperties[key] = value;
                     }
-                    const cacheNode = await this.mergeEmbeddingCacheNode(transaction, value as string);
-                    newProperties[vectorIndex.property] = cacheNode.embedding;
-                    newProperties[key] = value;
-                }
-                else if (property.getType() === 'DateTime') {
-                    newProperties[key] = DateTime.fromStandardDate(new Date(value as string))
-                } else if (value !== null && !Array.isArray(value) && typeof value === 'object') {
-                    const propertyDecl = this.modelManager.getType(property.getFullyQualifiedTypeName());
-                    if(!propertyDecl.isMapDeclaration()) {
-                        const childValue:PropertyBag = await this.validateAndTransformProperties(transaction, propertyDecl, value as PropertyBag);
-                        Object.keys(childValue).forEach( childKey => {
-                            newProperties[`${key}_${childKey}`] = childValue[childKey];
-                        });    
+                    else if (property.getType() === 'DateTime') {
+                        newProperties[key] = DateTime.fromStandardDate(new Date(value as string))
+                    } else if (value !== null && !Array.isArray(value) && typeof value === 'object') {
+                        const propertyDecl = this.modelManager.getType(property.getFullyQualifiedTypeName());
+                        if (!propertyDecl.isMapDeclaration()) {
+                            const childValue: PropertyBag = await this.validateAndTransformProperties(transaction, propertyDecl, value as PropertyBag);
+                            Object.keys(childValue).forEach(childKey => {
+                                newProperties[`${key}_${childKey}`] = childValue[childKey];
+                            });
+                        }
+                        else {
+                            Object.keys(value).forEach(childKey => {
+                                if (key !== '$class') {
+                                    const childValue = value[childKey];
+                                    // TODO DCS - support map values that are objects...
+                                    newProperties[`${key}_${childKey}`] = childValue;
+                                }
+                            });
+                        }
                     }
                     else {
-                        Object.keys(value).forEach( childKey => {
-                            if(key !== '$class') {
-                                const childValue = value[childKey];
-                                // TODO DCS - support map values that are objects...
-                                newProperties[`${key}_${childKey}`] = childValue;    
-                            }
-                        });
+                        newProperties[key] = value;
                     }
                 }
-                else {
-                    newProperties[key] = value;
-                }    
             }
         }
         return newProperties;
