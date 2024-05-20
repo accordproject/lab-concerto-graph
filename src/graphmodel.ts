@@ -446,7 +446,7 @@ export class GraphModel {
             const graphNodes = this.getGraphNodeDeclarations();
             for (let n = 0; n < graphNodes.length; n++) {
                 const graphNode = graphNodes[n];
-                await tx.run(`CREATE CONSTRAINT constraint_${graphNode.getName().toLowerCase()}_identifier FOR (a:${graphNode.getName()}) REQUIRE a.${graphNode.getIdentifierFieldName()} IS UNIQUE`);
+                await tx.run(`CREATE CONSTRAINT constraint_${graphNode.getName().toLowerCase()}_identifier IF NOT EXISTS FOR (a:${graphNode.getName()}) REQUIRE a.${graphNode.getIdentifierFieldName()} IS UNIQUE`);
             }
         })
         await session.close();
