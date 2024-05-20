@@ -143,9 +143,14 @@ async function run() {
     console.log(JSON.stringify(chatResult, null, 2));
  
     const chat2 = `Which director has directed a Comedy that is about the concepts of ${search}? Return a single movie.`;
+    console.log(chat2);
     const chatResult2 = await graphModel.chatWithData(chat2);
     console.log(JSON.stringify(chatResult2, null, 2));
 
+    const chat3 = `Which actor famously starred in a film that is similar to the concept of a journalist working under the influence of drugs in Las Vegas?`;
+    console.log(chat3);
+    const chatResult3 = await graphModel.chatWithData(chat3);
+    console.log(JSON.stringify(chatResult3, null, 2));
   }
   await graphModel.closeSession(context);
   console.log('done');

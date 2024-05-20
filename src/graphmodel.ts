@@ -4,6 +4,13 @@ import * as crypto from 'crypto'
 import OpenAI from "openai";
 
 /**
+ * A constant that is used in Open AI prompt
+ * to improve the performance of generating Cypher queries
+ * that include semantic embeddings
+ */
+const EMBEDDINGS_MAGIC = '<EMBEDDINGS>';
+
+/**
  * Definition of a vector (embeddings) index
  */
 type VectorIndex = {
@@ -60,6 +67,38 @@ export async function getOpenAiEmbedding(text: string): Promise<Array<number>> {
     return response.data[0].embedding;
 }
 
+async function callTools(options, openai, params: OpenAI.Chat.ChatCompletionCreateParams, choice: OpenAI.Chat.ChatCompletion.Choice) {
+    if (!choice.message.tool_calls) {
+        return;
+    }
+    let result: {query: string} = {query: ''};
+    for (let n = 0; n < choice.message.tool_calls.length; n++) {
+        const tool = choice.message.tool_calls[n];
+        options.logger?.log(`Calling tool: ${tool.function.name}`);
+        if (tool.function.name === 'get_embeddings') {
+            params.messages.push(choice.message);
+            const args = JSON.parse(tool.function.arguments);
+            // if we have multiple tools calling get_embeddings
+            // then we concat them each and return
+            result = {
+                query: result.query.length > 0 ? result.query + ' ' + args.query : args.query,
+            }
+            params.messages.push({ // the result of calling our tool...
+                "role": "tool",
+                "tool_call_id": tool.id,
+                "name": tool.function.name,
+                "content": EMBEDDINGS_MAGIC //JSON.stringify(embeddings)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any)
+        }
+        else {
+            options.logger?.log(`Unrecognized tool: ${tool.function.name}`);
+        }
+    }
+
+    return result;
+}
+
 /**
  * Converts a natural language query string to a Neo4J Cypher query.
  * @param options configure logger and embedding function
@@ -67,12 +106,12 @@ export async function getOpenAiEmbedding(text: string): Promise<Array<number>> {
  * @param ctoModel the text of all CTO models, used to configure Cypher generation
  * @returns a promise to the Cypher query or null
  */
-export async function textToCypher(options:GraphModelOptions, text: string, ctoModel): Promise<string | null> {
+export async function textToCypher(options: GraphModelOptions, text: string, ctoModel): Promise<string | null> {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const messages:any = [{
-        role: 'system', 
+    const messages: any = [{
+        role: 'system',
         content: `Convert the natural language query delimited by triple quotes to a Neo4J Cypher query.
 Just return the Cypher query, without an explanation for how it works. Do not enclose the result in a markdown code block.
 The nodes and edges in Neo4j are described via the following Accord Project Concerto model:
@@ -92,12 +131,12 @@ full text index. The name of the full text index is the lowercase name of the de
 with '_fulltext' appended.
 For example: movie_fulltext is the name of the full text index for the 'Movie' declaration.
 
-Use the token <EMBEDDINGS> to denote the embedding vector for input text.
+Use the token ${EMBEDDINGS_MAGIC} to denote the embedding vector for input text.
 
 Here is an example NeoJ4 query that matches 3 movies by conceptual similarity 
 (using vector cosine similarity):
 MATCH (l:Movie)
-    CALL db.index.vector.queryNodes('movie_summary', 3, <EMBEDDINGS> )
+    CALL db.index.vector.queryNodes('movie_summary', 3, ${EMBEDDINGS_MAGIC} )
     YIELD node AS similar, score
     MATCH (similar)
     RETURN similar.identifier as identifier, similar.summary as content, score limit 3
@@ -106,62 +145,46 @@ Natural language query: """${text}
 """
 `}];
 
-    const EMBEDDINGS_MAGIC = '<EMBEDDINGS>';
-
     const params: OpenAI.Chat.ChatCompletionCreateParams = {
         temperature: 0.1,
         tools: [
             {
                 "type": "function",
                 "function": {
-                  "name": "get_embeddings",
-                  "description": "Get semantic/conceptual vector embeddings for a query string",
-                  "parameters": {
-                    "type": "object",
-                    "properties": {
-                      "query": {
-                        "type": "string",
-                      }
-                    },
-                    "required": ["query"]
-                  }
+                    "name": "get_embeddings",
+                    "description": "Get semantic/conceptual vector embeddings for a query string",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "query": {
+                                "type": "string",
+                            }
+                        },
+                        "required": ["query"]
+                    }
                 }
-              }
+            }
         ],
         tool_choice: "auto",
         messages,
         model: 'gpt-4o',
     };
     let chatCompletion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(params);
-    if(chatCompletion.choices[0].message.tool_calls && options.embeddingFunction) {
-        if(chatCompletion.choices[0].message.tool_calls.length > 0) {
-            const tool = chatCompletion.choices[0].message.tool_calls[0];
-            options.logger?.log(`Calling tool: ${tool.function.name}`);
-            if(tool.function.name === 'get_embeddings') {
-                messages.push(chatCompletion.choices[0].message);
-                messages.push({
-                    "role":"tool", 
-                    "tool_call_id": tool.id, 
-                    "name": tool.function.name, 
-                    "content": EMBEDDINGS_MAGIC
-                })
-                chatCompletion = await openai.chat.completions.create(params);
-                const args = JSON.parse(tool.function.arguments);
-                const embeddings = await options.embeddingFunction(args.query);
-                if(chatCompletion.choices[0].message.content) {
-                    options.logger?.log(`Tool replacing embeddings: ${chatCompletion.choices[0].message.content}`);
-                    chatCompletion.choices[0].message.content = chatCompletion.choices[0].message.content.replaceAll(EMBEDDINGS_MAGIC, JSON.stringify(embeddings));
-                }
-            }
-            else {
-                throw new Error(`Unrecognized tool: ${tool.function}`);
-            }
+    if (chatCompletion.choices[0].message.tool_calls && options.embeddingFunction) {
+        // modifies params!
+        const result = await callTools(options, openai, params, chatCompletion.choices[0]);
+        options.logger?.log('Converting query with embeddings to Cypher...');
+        chatCompletion = await openai.chat.completions.create(params);
+        if (result && chatCompletion.choices[0].message.content && chatCompletion.choices[0].message.content.indexOf(EMBEDDINGS_MAGIC) > 0) {
+            options.logger?.log(`Tool replacing embeddings: ${chatCompletion.choices[0].message.content} with: ${result.query}`);
+            const embeddings = await options.embeddingFunction(result.query);
+            chatCompletion.choices[0].message.content = chatCompletion.choices[0].message.content.replaceAll(EMBEDDINGS_MAGIC, JSON.stringify(embeddings));
         }
     }
-    if(options.embeddingFunction && chatCompletion.choices[0].message.content && chatCompletion.choices[0].message.content.indexOf(EMBEDDINGS_MAGIC) > 0) {
+    if (options.embeddingFunction && chatCompletion.choices[0].message.content && chatCompletion.choices[0].message.content.indexOf(EMBEDDINGS_MAGIC) > 0) {
         options.logger?.log(`Non-tool replacing embeddings: ${chatCompletion.choices[0].message.content}`);
         const embeddings = await options.embeddingFunction(text);
-        chatCompletion.choices[0].message.content = chatCompletion.choices[0].message.content.replaceAll(EMBEDDINGS_MAGIC, JSON.stringify(embeddings));    
+        chatCompletion.choices[0].message.content = chatCompletion.choices[0].message.content.replaceAll(EMBEDDINGS_MAGIC, JSON.stringify(embeddings));
     }
     return chatCompletion.choices[0].message.content;
 }
@@ -304,7 +327,7 @@ export class GraphModel {
     async closeSession(context: Context) {
         context.session.close();
     }
-    
+
     private getFullyQualifiedType(type: string) {
         const typeNs = ModelUtil.getNamespace(type);
         const typeShortName = ModelUtil.getShortName(type);
@@ -491,7 +514,7 @@ export class GraphModel {
      * @param embedding the embeddings for the text to search for
      * @returns
      */
-    async similarityQueryFromEmbedding(typeName: string, propertyName: string, embedding:Array<number>, count: number): Promise<Array<SimilarityResult>> {
+    async similarityQueryFromEmbedding(typeName: string, propertyName: string, embedding: Array<number>, count: number): Promise<Array<SimilarityResult>> {
         const decl = this.getGraphNodeDeclaration(typeName);
         const vectorProperty = decl.getProperty(propertyName);
         if (!vectorProperty) {
@@ -677,7 +700,7 @@ export class GraphModel {
                 const queryResult = await this.query(cypher);
                 return queryResult ? queryResult.records.map(v => {
                     const result = {};
-                    v.keys.forEach( k => {
+                    v.keys.forEach(k => {
                         result[k] = v.get(k);
                     })
                     return result;
@@ -700,32 +723,32 @@ export class GraphModel {
      * @returns the items
      */
     async fullTextQuery(typeName: string, searchText: string, count: number) {
-            try {
-                const graphNode = this.getGraphNodeDeclaration(typeName);
-                const fullTextIndex = this.getFullTextIndex(graphNode);
-                if (!fullTextIndex) {
-                    throw new Error(`No full text index for properties of ${typeName}`);
-                }
-                const indexName = this.getFullTextIndexName(graphNode);
-                const props = fullTextIndex.properties.map(p => `node.${p}`);
-                props.push('node.identifier');
-                const q = `CALL db.index.fulltext.queryNodes("${indexName}", "${searchText}") YIELD node, score RETURN ${props.join(',')}, score limit ${count}`;
-                const queryResult = await this.query(q);
-                return queryResult ? queryResult.records.map(v => {
-                    const result = {};
-                    fullTextIndex.properties.forEach(p => {
-                        result[p] = v.get(`node.${p}`)
-                    });
-                    result['score'] = v.get('score');
-                    result['identifier'] = v.get('node.identifier');
-                    return result;
-                }) : [];
+        try {
+            const graphNode = this.getGraphNodeDeclaration(typeName);
+            const fullTextIndex = this.getFullTextIndex(graphNode);
+            if (!fullTextIndex) {
+                throw new Error(`No full text index for properties of ${typeName}`);
             }
-            catch (err) {
-                this.options.logger?.log((err as object).toString());
-                throw err;
-            }
+            const indexName = this.getFullTextIndexName(graphNode);
+            const props = fullTextIndex.properties.map(p => `node.${p}`);
+            props.push('node.identifier');
+            const q = `CALL db.index.fulltext.queryNodes("${indexName}", "${searchText}") YIELD node, score RETURN ${props.join(',')}, score limit ${count}`;
+            const queryResult = await this.query(q);
+            return queryResult ? queryResult.records.map(v => {
+                const result = {};
+                fullTextIndex.properties.forEach(p => {
+                    result[p] = v.get(`node.${p}`)
+                });
+                result['score'] = v.get('score');
+                result['identifier'] = v.get('node.identifier');
+                return result;
+            }) : [];
         }
+        catch (err) {
+            this.options.logger?.log((err as object).toString());
+            throw err;
+        }
+    }
 
     private async validateAndTransformProperties(transaction, decl: ClassDeclaration, properties: PropertyBag): Promise<PropertyBag> {
         const factory = new Factory(this.modelManager);
