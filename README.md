@@ -61,6 +61,63 @@ Runtime result:
 ]
 ```
 
+You can also "chat with your data" — converting natural language queries to Neo4J Cypher
+queries and running them over your graph.
+
+```
+    const chat = 'Which director has directed both Johnny Depp and Jonathan Pryce, but not necessarily in the same movie?';
+    console.log(`Chat with data: ${chat}`);
+    const cypher = await graphModel.textToCypher(chat);
+    console.log(`Converted to Cypher query: ${cypher}`);    
+    const chatResult = await graphModel.chatWithData(chat);
+    console.log(JSON.stringify(chatResult, null, 2));
+```
+
+Output:
+
+```
+Chat with data: Which director has directed both Johnny Depp and Jonathan Pryce, but not necessarily in the same movie?
+Converted to Cypher query: MATCH (d:Director)-[:DIRECTED]->(m:Movie)<-[:ACTED_IN]-(a1:Actor {identifier: 'Johnny Depp'}),
+      (d)-[:DIRECTED]->(m2:Movie)<-[:ACTED_IN]-(a2:Actor {identifier: 'Jonathan Pryce'})
+RETURN d.identifier
+[
+  {
+    "d.identifier": "Terry Gilliam"
+  },
+  {
+    "d.identifier": "Terry Gilliam"
+  }
+]
+```
+ 
+ Natural language queries can even contain expressions that use the conceptual search (vector similarity)!
+
+ ```
+     const search = 'working in a boring job and looking for love.';
+    const chat2 = `Which director has directed a movie that is about the concepts of ${search}? Return a single movie.`;
+    const chatResult2 = await graphModel.chatWithData(chat2);
+    console.log(JSON.stringify(chatResult2, null, 2));
+```
+
+Output:
+
+```
+Calling tool: get_embeddings
+Tool replacing embeddings: MATCH (d:Director)-[:DIRECTED]->(m:Movie)
+CALL db.index.vector.queryNodes('movie_summary', 1, <EMBEDDINGS>)
+YIELD node AS similar, score
+MATCH (similar)<-[:DIRECTED]-(d)
+RETURN d.identifier as director, similar.identifier as movie, similar.summary as summary, score limit 1
+[
+  {
+    "director": "Terry Gilliam",
+    "movie": "Brazil",
+    "summary": "The film centres on Sam Lowry, a low-ranking bureaucrat trying to find a woman who appears in his dreams while he is working in a mind-numbing job and living in a small apartment, set in a dystopian world in which there is an over-reliance on poorly maintained (and rather whimsical) machines",
+    "score": 0.7065110206604004
+  }
+]
+```
+
 ## Environment Variables
 
 ### GraphDB
