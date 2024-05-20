@@ -32,12 +32,103 @@ export type SimilarityResult = {
 export async function getOpenAiEmbedding(text: string): Promise<Array<number>> {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const response = await openai.embeddings.create({
-        model: "text-embedding-ada-002",
+        model: "text-embedding-3-small",
         input: text,
         encoding_format: "float",
     });
     return response.data[0].embedding;
 }
+
+export async function textToCypher(options:GraphModelOptions, text: string, ctoModel): Promise<string | null> {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const messages:any = [{
+        role: 'system', 
+        content: `Convert the natural language query delimited by triple quotes to a Neo4J Cypher query.
+Just return the Cypher query, without an explanation for how it works. Do not enclose the result in a markdown code block.
+The nodes and edges in Neo4j are described via the following Accord Project Concerto model:
+
+Concerto mode:
+\`\`\`
+${ctoModel}
+\`\`\`
+
+Concerto properties with the @vector_index decorator have a Neo4J vector index. The name
+of the vector index is the lowercase name of the declaration with '_' and the lowercase 
+name of the property appended.
+
+Concerto declarations with any properties with the @fulltext_index decorator have a 
+full text index. The name of the full text index is the lowercase name of the declaration
+with '_fulltext' appended.
+
+Here is an example NeoJ4 query that matches 3 movies by conceptual similarity 
+(using vector cosine similarity):
+MATCH (l:Movie)
+    CALL db.index.vector.queryNodes('movie_summary', 3, [-0.042983294,-0.00888215, ...] )
+    YIELD node AS similar, score
+    MATCH (similar)
+    RETURN similar.identifier as identifier, similar.summary as content, score limit 3
+
+Natural language query: """${text}
+"""
+`}];
+
+    const EMBEDDINGS_MAGIC = '<EMBEDDINGS>';
+
+    const params: OpenAI.Chat.ChatCompletionCreateParams = {
+        temperature: 0.1,
+        tools: [
+            {
+                "type": "function",
+                "function": {
+                  "name": "get_embeddings",
+                  "description": "Get vector embeddings for a query string",
+                  "parameters": {
+                    "type": "object",
+                    "properties": {
+                      "query": {
+                        "type": "string",
+                      }
+                    },
+                    "required": ["query"]
+                  }
+                }
+              }
+        ],
+        tool_choice: "auto",
+        messages,
+        model: 'gpt-4o',
+    };
+    let chatCompletion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(params);
+    if(chatCompletion.choices[0].message.tool_calls && options.embeddingFunction) {
+        if(chatCompletion.choices[0].message.tool_calls.length > 0) {
+            const tool = chatCompletion.choices[0].message.tool_calls[0];
+            options.logger?.log(`Calling tool: ${tool.function.name}`);
+            if(tool.function.name === 'get_embeddings') {
+                messages.push(chatCompletion.choices[0].message);
+                messages.push({
+                    "role":"tool", 
+                    "tool_call_id": tool.id, 
+                    "name": tool.function.name, 
+                    "content": EMBEDDINGS_MAGIC
+                })
+                chatCompletion = await openai.chat.completions.create(params);
+                const args = JSON.parse(tool.function.arguments);
+                const embeddings = await options.embeddingFunction(args.query);
+                if(chatCompletion.choices[0].message.content) {
+                    options.logger?.log(`Tool replacing embeddings: ${chatCompletion.choices[0].message.content}`);
+                    chatCompletion.choices[0].message.content = chatCompletion.choices[0].message.content.replaceAll(EMBEDDINGS_MAGIC, JSON.stringify(embeddings));   
+                }
+            }
+            else {
+                throw new Error(`Unrecognized tool: ${tool.function}`);
+            }
+        }
+    }
+    return chatCompletion.choices[0].message.content;
+}
+
 
 export function getObjectChecksum(obj: PropertyBag) {
     const deterministicReplacer = (_, v) =>
@@ -431,33 +522,62 @@ export class GraphModel {
         }
     }
 
-    async fullTextQuery(typeName: string, searchText: string, count: number) {
-        try {
-            const graphNode = this.getGraphNodeDeclaration(typeName);
-            const fullTextIndex = this.getFullTextIndex(graphNode);
-            if (!fullTextIndex) {
-                throw new Error(`No full text index for properties of ${typeName}`);
-            }
-            const indexName = this.getFullTextIndexName(graphNode);
-            const props = fullTextIndex.properties.map(p => `node.${p}`);
-            props.push('node.identifier');
-            const q = `CALL db.index.fulltext.queryNodes("${indexName}", "${searchText}") YIELD node, score RETURN ${props.join(',')}, score limit ${count}`;
-            const queryResult = await this.query(q);
-            return queryResult ? queryResult.records.map(v => {
-                const result = {};
-                fullTextIndex.properties.forEach(p => {
-                    result[p] = v.get(`node.${p}`)
-                });
-                result['score'] = v.get('score');
-                result['identifier'] = v.get('node.identifier');
-                return result;
-            }) : [];
-        }
-        catch (err) {
-            this.options.logger?.log((err as object).toString());
-            throw err;
-        }
+    async textToCypher(text: string): Promise<string | null> {
+        const ctoModels = this.modelManager.getModels().reduce((prev, cur) => prev += cur.content, '');
+        return textToCypher(this.options, text, ctoModels);
     }
+
+    async chatWithData(text: string) {
+        const cypher = await this.textToCypher(text);
+        if (cypher) {
+            const context = await this.openSession();
+            const transaction = await context.session.beginTransaction();
+            try {
+                const queryResult = await this.query(cypher);
+                return queryResult ? queryResult.records.map(v => {
+                    const result = {};
+                    v.keys.forEach( k => {
+                        result[k] = v.get(k);
+                    })
+                    return result;
+                }) : [];
+            }
+            catch (err) {
+                this.options.logger?.log((err as object).toString());
+                transaction?.rollback();
+                throw err;
+            }
+        }
+        throw new Error(`Failed to convert to Cypher query ${text}`);
+    }
+
+    async fullTextQuery(typeName: string, searchText: string, count: number) {
+            try {
+                const graphNode = this.getGraphNodeDeclaration(typeName);
+                const fullTextIndex = this.getFullTextIndex(graphNode);
+                if (!fullTextIndex) {
+                    throw new Error(`No full text index for properties of ${typeName}`);
+                }
+                const indexName = this.getFullTextIndexName(graphNode);
+                const props = fullTextIndex.properties.map(p => `node.${p}`);
+                props.push('node.identifier');
+                const q = `CALL db.index.fulltext.queryNodes("${indexName}", "${searchText}") YIELD node, score RETURN ${props.join(',')}, score limit ${count}`;
+                const queryResult = await this.query(q);
+                return queryResult ? queryResult.records.map(v => {
+                    const result = {};
+                    fullTextIndex.properties.forEach(p => {
+                        result[p] = v.get(`node.${p}`)
+                    });
+                    result['score'] = v.get('score');
+                    result['identifier'] = v.get('node.identifier');
+                    return result;
+                }) : [];
+            }
+            catch (err) {
+                this.options.logger?.log((err as object).toString());
+                throw err;
+            }
+        }
 
     private async validateAndTransformProperties(transaction, decl: ClassDeclaration, properties: PropertyBag): Promise<PropertyBag> {
         const factory = new Factory(this.modelManager);

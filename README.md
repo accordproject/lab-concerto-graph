@@ -70,4 +70,4 @@ Runtime result:
 - NEO4J_USER: <optional> defaults to `neo4j`
 
 ### Text Embeddings
-- OPENAI_API_KEY: <optional> the OpenAI API key. If not set embeddings are not computed and written to the agreement graph and similarity search is not possible.
+- OPENAI_API_KEY: <optional> the OpenAI API key. If not set embeddings are not computed and written to the agreement graph and similarity search, natural language to Cypher generation ("chat with data") is not possible.

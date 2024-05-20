@@ -73,6 +73,7 @@ async function run() {
   }
   const graphModel = new GraphModel([MODEL], options);  
   await graphModel.connect();
+  await graphModel.deleteGraph();
   await graphModel.dropIndexes();
   await graphModel.createConstraints();
   await graphModel.createVectorIndexes();
@@ -129,13 +130,31 @@ async function run() {
   const fullTextResults = await graphModel.fullTextQuery('Movie', fullTextSearch, 2);
   console.log(fullTextResults);
   if(process.env.OPENAI_API_KEY) {
-    const search = 'Working in a boring job and looking for love.';
+    const search = 'working in a boring job and looking for love.';
     console.log(`Searching for movies related to: '${search}'`);
     const results = await graphModel.similarityQuery('Movie', 'summary', search, 3);
-    console.log(results);  
+    console.log(results);
+    
+    const chat = 'Which director has directed both Johnny Depp and Jonathan Pryce, but not necessarily in the same movie?';
+    console.log(`Chat with data: ${chat}`);
+    const cypher = await graphModel.textToCypher(chat);
+    console.log(`Converted to Cypher query: ${cypher}`);
+    const chatResult = await graphModel.chatWithData(chat);
+    console.log(JSON.stringify(chatResult, null, 2));
+ 
+    const chat2 = `Which director has directed a movie that is about the concepts of ${search}? Return a single movie.`;
+    const chatResult2 = await graphModel.chatWithData(chat2);
+    console.log(JSON.stringify(chatResult2, null, 2));
+
   }
   await graphModel.closeSession(context);
   console.log('done');
+  process.exit();
 }
 
-run();
+try {
+  run();
+}
+catch(err) {
+  console.log(err);
+}
