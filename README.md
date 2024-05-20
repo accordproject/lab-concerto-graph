@@ -126,8 +126,8 @@ RETURN d.identifier as director, similar.identifier as movie, similar.summary as
 - NEO4J_PASS: your neo4j password.
 - NEO4J_USER: <optional> defaults to `neo4j`
 
-### Text Embeddings
-- OPENAI_API_KEY: <optional> the OpenAI API key. If not set embeddings are not computed and written to the agreement graph and similarity search, natural language to Cypher generation ("chat with data") is not possible.
+### Text Embeddings & Chat With Data
+- OPENAI_API_KEY: <optional> the OpenAI API key. If not set embeddings are not computed and written to the agreement graph. Must be set to use similarity search or natural language to Cypher generation ("chat with data").
 
 ## API Documentation
 
