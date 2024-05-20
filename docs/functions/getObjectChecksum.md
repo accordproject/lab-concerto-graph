@@ -24,4 +24,4 @@ the identifier as a string
 
 ## Source
 
-[graphmodel.ts:165](https://github.com/accordproject/lab-concerto-graph/blob/0563543f1fdc8f8f027cd4b4eb91d11b07eff3b4/src/graphmodel.ts#L165)
+[graphmodel.ts:165](https://github.com/accordproject/lab-concerto-graph/blob/2c80b4a9bb941195f795971845a6802f68fb0254/src/graphmodel.ts#L165)
