@@ -2,7 +2,7 @@
 
 ***
 
-[@accordproject/concerto-graph](../README.md) / getTextChecksum
+[@accordproject/concerto-graph](../globals.md) / getTextChecksum
 
 # Function: getTextChecksum()
 
@@ -12,9 +12,9 @@ Computes a SHA256 checksum for input text
 
 ## Parameters
 
-• **text**: `string`
-
-the input text
+| Parameter | Type | Description |
+| :------ | :------ | :------ |
+| `text` | `string` | the input text |
 
 ## Returns
 
@@ -24,4 +24,4 @@ the checksum
 
 ## Source
 
-[graphmodel.ts:178](https://github.com/accordproject/lab-concerto-graph/blob/7f2e9294ea86dce21442f2458a6ff685a4437085/src/graphmodel.ts#L178)
+[graphmodel.ts:178](https://github.com/accordproject/lab-concerto-graph/blob/cefc9be4fd1dac498d9d3b8abf33d069293dcc53/src/graphmodel.ts#L178)

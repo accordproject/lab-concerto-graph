@@ -1,9 +1,14 @@
 {
     "$schema": "https://typedoc.org/schema.json",
-    "plugin": ["typedoc-plugin-markdown"],
     "out": "./docs",
-    "outputFileStrategy": "members",
     "entryPoints": ["src/graphmodel.ts"],
-    "mergeReadme": true
+    "excludePrivate": true,
+    "stripYamlFrontmatter": true,
+    "plugin": ["typedoc-plugin-markdown"],
+    "propertiesFormat": "table",
+    "parametersFormat": "table",
+    "enumMembersFormat": "list",
+    "typeDeclarationFormat": "list",
+    "indexFormat": "list"
   }
   

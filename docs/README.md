@@ -1,15 +1,6 @@
-**@accordproject/concerto-graph** • **Docs**
+**@accordproject/concerto-graph** • [**Docs**](globals.md)
 
 ***
-
----
-title: Concerto Graph
-description: Store Concerto Concepts in a Graph DB
-tags:
-  - Concerto
-  - Neo4J
-  - Graph
----
 
 # Concerto Graph
 
@@ -75,28 +66,3 @@ Runtime result:
 
 ### Text Embeddings
 - OPENAI_API_KEY: <optional> the OpenAI API key. If not set embeddings are not computed and written to the agreement graph and similarity search, natural language to Cypher generation ("chat with data") is not possible.
-
-## API Index
-
-### Classes
-
-- [GraphModel](classes/GraphModel.md)
-
-### Type Aliases
-
-- [Context](type-aliases/Context.md)
-- [GraphModelOptions](type-aliases/GraphModelOptions.md)
-- [GraphNodeProperties](type-aliases/GraphNodeProperties.md)
-- [SimilarityResult](type-aliases/SimilarityResult.md)
-
-### Variables
-
-- [ROOT\_MODEL](variables/ROOT_MODEL.md)
-- [ROOT\_NAMESPACE](variables/ROOT_NAMESPACE.md)
-
-### Functions
-
-- [getObjectChecksum](functions/getObjectChecksum.md)
-- [getOpenAiEmbedding](functions/getOpenAiEmbedding.md)
-- [getTextChecksum](functions/getTextChecksum.md)
-- [textToCypher](functions/textToCypher.md)
