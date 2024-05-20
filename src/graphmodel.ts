@@ -84,16 +84,20 @@ ${ctoModel}
 
 Concerto properties with the @vector_index decorator have a Neo4J vector index. The name
 of the vector index is the lowercase name of the declaration with '_' and the lowercase 
-name of the property appended.
+name of the property appended. 
+For example: 'movie_summary' is the name of the vector index for the 'Movie.summary' property.
 
 Concerto declarations with any properties with the @fulltext_index decorator have a 
 full text index. The name of the full text index is the lowercase name of the declaration
 with '_fulltext' appended.
+For example: movie_fulltext is the name of the full text index for the 'Movie' declaration.
+
+Use the token <EMBEDDINGS> to denote the embedding vector for input text.
 
 Here is an example NeoJ4 query that matches 3 movies by conceptual similarity 
 (using vector cosine similarity):
 MATCH (l:Movie)
-    CALL db.index.vector.queryNodes('movie_summary', 3, [-0.042983294,-0.00888215, ...] )
+    CALL db.index.vector.queryNodes('movie_summary', 3, <EMBEDDINGS> )
     YIELD node AS similar, score
     MATCH (similar)
     RETURN similar.identifier as identifier, similar.summary as content, score limit 3
