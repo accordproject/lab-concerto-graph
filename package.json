@@ -10,7 +10,8 @@
     "prestart": "npm run build",
     "start": "node dist/src/demo/index.js",
     "test": "jest",
-    "coverage": "npx jest --coverage"
+    "coverage": "npx jest --coverage",
+    "docs": "typedoc"
   },
   "devDependencies": {
     "@babel/core": "^7.23.6",
@@ -34,6 +35,8 @@
     "semver": "^7.5.4",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
+    "typedoc": "^0.25.13",
+    "typedoc-plugin-markdown": "^4.0.2",
     "typescript": "^5.3.3"
   },
   "dependencies": {

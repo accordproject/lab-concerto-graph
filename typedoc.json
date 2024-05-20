@@ -1,0 +1,9 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "plugin": ["typedoc-plugin-markdown"],
+    "out": "./docs",
+    "outputFileStrategy": "members",
+    "entryPoints": ["src/graphmodel.ts"],
+    "mergeReadme": true
+  }
+  

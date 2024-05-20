@@ -3,32 +3,53 @@ import neo4j, { DateTime, Driver, ManagedTransaction, Session } from 'neo4j-driv
 import * as crypto from 'crypto'
 import OpenAI from "openai";
 
+/**
+ * Definition of a vector (embeddings) index
+ */
 type VectorIndex = {
     property: string;
     size: number;
     type: string;
 }
 
+/**
+ * Definition of a full text index over some properties
+ */
 type FullTextIndex = {
     properties: Array<string>;
 }
 
+/**
+ * Runtime context
+ */
 export type Context = {
     session: Session;
 }
 
+/**
+ * A Node type that is used to cache vector embeddings
+ */
 type EmbeddingCacheNode = {
     $class: string;
     embedding: Array<number>;
     content: string;
 }
 
+/**
+ * Result of a vector similarity search
+ */
 export type SimilarityResult = {
     identifier: string;
     content: string;
     score: number;
 }
 
+/**
+ * Computes the vector embeddings for a text string.
+ * Uses the Open AI `text-embedding-3-small` model.
+ * @param text the input text to compute embeddings for
+ * @returns a promise to an array of numbers
+ */
 export async function getOpenAiEmbedding(text: string): Promise<Array<number>> {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const response = await openai.embeddings.create({
@@ -39,6 +60,13 @@ export async function getOpenAiEmbedding(text: string): Promise<Array<number>> {
     return response.data[0].embedding;
 }
 
+/**
+ * Converts a natural language query string to a Neo4J Cypher query.
+ * @param options configure logger and embedding function
+ * @param text the input text to convert to Cypher
+ * @param ctoModel the text of all CTO models, used to configure Cypher generation
+ * @returns a promise to the Cypher query or null
+ */
 export async function textToCypher(options:GraphModelOptions, text: string, ctoModel): Promise<string | null> {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -129,7 +157,11 @@ Natural language query: """${text}
     return chatCompletion.choices[0].message.content;
 }
 
-
+/**
+ * Computes a deterministic identifier for a set of properties.
+ * @param obj the properties of an object
+ * @returns the identifier as a string
+ */
 export function getObjectChecksum(obj: PropertyBag) {
     const deterministicReplacer = (_, v) =>
         typeof v !== 'object' || v === null || Array.isArray(v) ? v :
@@ -138,16 +170,41 @@ export function getObjectChecksum(obj: PropertyBag) {
     return crypto.createHash('sha256').update(JSON.stringify(obj, deterministicReplacer)).digest('hex')
 }
 
+/**
+ * Computes a SHA256 checksum for input text
+ * @param text the input text
+ * @returns the checksum
+ */
 export function getTextChecksum(text: string) {
     return crypto.createHash('sha256').update(text).digest('hex')
 }
 
+/**
+ * A untyped set of properties
+ */
 type PropertyBag = Record<string, unknown>;
+
+/**
+ * The properties allowed on graph nodes
+ */
 export type GraphNodeProperties = PropertyBag;
+
+/**
+ * Function signature for a function that can calculate
+ * vector embeddings for text
+ */
 type EmbeddingFunction = (text: string) => Promise<Array<number>>;
+
+/**
+ * Function signature for a logger
+ */
 type Logger = {
     log: (text: string) => void;
 }
+
+/**
+ * Graph model options, used to configure Concerto Graph
+ */
 export type GraphModelOptions = {
     embeddingFunction?: EmbeddingFunction;
     logger?: Logger;
@@ -157,7 +214,14 @@ export type GraphModelOptions = {
     logQueries?: boolean;
 }
 
+/**
+ * The concerto graph namespaces, used for internal nodes
+ */
 export const ROOT_NAMESPACE = 'org.accordproject.graph@1.0.0';
+
+/**
+ * The concerto graph model, defines internal nodes 
+ */
 export const ROOT_MODEL = `namespace ${ROOT_NAMESPACE}
 concept GraphNode identified by identifier {
     o String identifier
@@ -180,6 +244,11 @@ export class GraphModel {
     options: GraphModelOptions;
     defaultNamespace: string | undefined;
 
+    /**
+     * Creates a new instance of GraphModel
+     * @param graphModels an array of strings in Concerto CTO format
+     * @param options the options used to configure the instance
+     */
     constructor(graphModels: Array<string>, options: GraphModelOptions) {
         this.options = options;
         this.modelManager = new ModelManager({ strict: true, enableMapType: true });
@@ -191,6 +260,9 @@ export class GraphModel {
         this.modelManager.validateModelFiles();
     }
 
+    /**
+     * Connects to Neo4J
+     */
     async connect() {
         if (!this.driver) {
             this.driver = neo4j.driver(this.options.NEO4J_URL ?? 'bolt://localhost:7687',
@@ -201,6 +273,13 @@ export class GraphModel {
         }
     }
 
+    /**
+     * Opens a new database session. Call 'closeSession' to
+     * free resources.
+     * 
+     * @param database the name of the database. Defaults to 'neo4j'.
+     * @returns a promise to a Context for the database.
+     */
     async openSession(database = 'neo4j'): Promise<Context> {
         if (this.driver) {
             const session = this.driver.session({ database })
@@ -209,10 +288,14 @@ export class GraphModel {
         throw new Error('No neo4j driver!');
     }
 
+    /**
+     * Closes a database context.
+     * @param context the database context
+     */
     async closeSession(context: Context) {
         context.session.close();
     }
-
+    
     private getFullyQualifiedType(type: string) {
         const typeNs = ModelUtil.getNamespace(type);
         const typeShortName = ModelUtil.getShortName(type);
@@ -293,6 +376,9 @@ export class GraphModel {
         return `${decl.getName()}_fulltext`.toLowerCase();
     }
 
+    /**
+     * Drop all Neo4J indexes for the model.
+     */
     async dropIndexes() {
         this.options.logger?.log('Dropping indexes...');
         const { session } = await this.openSession();
@@ -318,6 +404,9 @@ export class GraphModel {
         this.options.logger?.log('Drop indexes completed');
     }
 
+    /**
+     * Create Neo4J constraints for the model
+     */
     async createConstraints() {
         this.options.logger?.log('Creating constraints...');
         const { session } = await this.openSession();
@@ -332,6 +421,9 @@ export class GraphModel {
         this.options.logger?.log('Create constraints completed');
     }
 
+    /**
+     * Create vector indexes for the model
+     */
     async createVectorIndexes() {
         this.options.logger?.log('Creating vector indexes...');
         const { session } = await this.openSession();
@@ -371,6 +463,9 @@ export class GraphModel {
         this.options.logger?.log('Create full text indexes completed');
     }
 
+    /**
+     * Delete all nodes/edges in the graph
+     */
     async deleteGraph() {
         const { session } = await this.openSession();
         await session.executeWrite(async tx => {
@@ -384,10 +479,10 @@ export class GraphModel {
      * @param typeName the name of the type E.g. 'Clause'
      * @param propertyName the name of the property to search. E.g. 'content'.
      * @param count the number of similar nodes to return
-     * @param embeddings the embeddings for the text to search for
+     * @param embedding the embeddings for the text to search for
      * @returns
      */
-    async similarityQueryFromEmbedding(typeName: string, propertyName: string, embedding, count: number): Promise<Array<SimilarityResult>> {
+    async similarityQueryFromEmbedding(typeName: string, propertyName: string, embedding:Array<number>, count: number): Promise<Array<SimilarityResult>> {
         const decl = this.getGraphNodeDeclaration(typeName);
         const vectorProperty = decl.getProperty(propertyName);
         if (!vectorProperty) {
@@ -411,6 +506,13 @@ export class GraphModel {
         }) : [];
     }
 
+    /**
+     * Runs a Cypher query
+     * @param cypher the Cypher query to execute
+     * @param parameters any parameters for the query
+     * @param tx the transaction
+     * @returns the query results
+     */
     async query(cypher: string, parameters?: PropertyBag, tx?: ManagedTransaction) {
         if (this.options.logQueries) {
             this.options.logger?.log(cypher);
@@ -429,13 +531,14 @@ export class GraphModel {
     }
 
     /**
+     * Merges Nodes into the graph.
      * Note that this merges nodes based on identifier. I.e. if a node with a given
      * identifier already exists then its properties are SET. If the node does not exist
      * then a new node is created.
-     * @param transaction 
-     * @param typeName 
-     * @param properties 
-     * @returns 
+     * @param transaction the transaction
+     * @param typeName the name of the type
+     * @param properties the properties for the node
+     * @returns the graph node
      */
     async mergeNode(transaction: ManagedTransaction, typeName: string, properties: PropertyBag) {
         const decl = this.getGraphNodeDeclaration(typeName);
@@ -453,6 +556,16 @@ export class GraphModel {
         return this.query(`MERGE (n:${decl.getName()}{identifier: $id}) ${set}`, { id, ...newProperties }, transaction);
     }
 
+    /**
+     * Merges a relationship into the graph
+     * @param transaction the transaction
+     * @param sourceType the source node type of the relationship
+     * @param sourceIdentifier the source identifier for the relationship
+     * @param targetType the target node type
+     * @param targetIdentifier the target identifier
+     * @param sourcePropertyName the source property name
+     * @returns the source node
+     */
     async mergeRelationship(transaction: ManagedTransaction, sourceType: string, sourceIdentifier:
         string, targetType: string, targetIdentifier: string, sourcePropertyName: string) {
         const sourceDecl = this.getGraphNodeDeclaration(sourceType);
@@ -479,9 +592,9 @@ export class GraphModel {
     /**
      * We use the EmbeddingCacheNode GraphNode as a cache to ensure deterministic
      * embeddings for the same text, and to cut down on OpenAI API calls
-     * @param transaction 
-     * @param text 
-     * @returns Promise<QueryResult<RecordShape>
+     * @param transaction the transaction
+     * @param text the text to cache
+     * @returns a promise to the EmbeddingCacheNode
      */
     private async mergeEmbeddingCacheNode(transaction, text: string): Promise<EmbeddingCacheNode> {
         const embeddingId = getTextChecksum(text);
@@ -504,6 +617,14 @@ export class GraphModel {
         }
     }
 
+    /**
+     * Searches for similar nodes, using a vector similarity search
+     * @param typeName the name of the type
+     * @param propertyName the property to search over
+     * @param searchText the search text
+     * @param count the number of items to return
+     * @returns an array of similar nodes, up to the count limit
+     */
     async similarityQuery(typeName: string, propertyName: string, searchText: string, count: number): Promise<Array<SimilarityResult>> {
         const context = await this.openSession();
         const transaction = await context.session.beginTransaction();
@@ -522,11 +643,22 @@ export class GraphModel {
         }
     }
 
+    /**
+     * Converts a natural language query string to a Cypher query
+     * @param text the input text
+     * @returns the Cypher query
+     */
     async textToCypher(text: string): Promise<string | null> {
         const ctoModels = this.modelManager.getModels().reduce((prev, cur) => prev += cur.content, '');
         return textToCypher(this.options, text, ctoModels);
     }
 
+    /**
+     * Converts the incoming natural language query to Cypher and then
+     * runs the Cypher query.
+     * @param text the input text
+     * @returns the query results
+     */
     async chatWithData(text: string) {
         const cypher = await this.textToCypher(text);
         if (cypher) {
@@ -551,6 +683,13 @@ export class GraphModel {
         throw new Error(`Failed to convert to Cypher query ${text}`);
     }
 
+    /**
+     * Uses the full text index for a type to perform a full text search
+     * @param typeName the type to search
+     * @param searchText the query text
+     * @param count the number of items to return
+     * @returns the items
+     */
     async fullTextQuery(typeName: string, searchText: string, count: number) {
             try {
                 const graphNode = this.getGraphNodeDeclaration(typeName);
