@@ -125,7 +125,7 @@ async function run() {
     await graphModel.mergeNode(transaction, 'Actor', {identifier: 'Johnny Depp'} );
     await graphModel.mergeRelationship(transaction, 'Actor', 'Johnny Depp', 'Movie', 'Fear and Loathing in Las Vegas', 'actedIn' );
   });
-  const fullTextSearch = 'film';
+  const fullTextSearch = 'bats';
   console.log(`Full text search for movies with: '${fullTextSearch}'`);
   const fullTextResults = await graphModel.fullTextQuery('Movie', fullTextSearch, 2);
   console.log(fullTextResults);
