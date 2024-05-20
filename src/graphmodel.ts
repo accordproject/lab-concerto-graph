@@ -68,15 +68,15 @@ export async function getOpenAiEmbedding(text: string): Promise<Array<number>> {
 }
 
 async function callTools(options, openai, params: OpenAI.Chat.ChatCompletionCreateParams, choice: OpenAI.Chat.ChatCompletion.Choice) {
-    if (!choice.message.tool_calls) {
+    if (!choice.message.tool_calls || !choice.message.tool_calls.length) {
         return;
     }
     let result: {query: string} = {query: ''};
+    params.messages.push(choice.message);
     for (let n = 0; n < choice.message.tool_calls.length; n++) {
         const tool = choice.message.tool_calls[n];
         options.logger?.log(`Calling tool: ${tool.function.name}`);
         if (tool.function.name === 'get_embeddings') {
-            params.messages.push(choice.message);
             const args = JSON.parse(tool.function.arguments);
             // if we have multiple tools calling get_embeddings
             // then we concat them each and return
