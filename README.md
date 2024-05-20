@@ -93,7 +93,7 @@ RETURN d.identifier
  Natural language queries can even contain expressions that use the conceptual search (vector similarity)!
 
  ```
-     const search = 'working in a boring job and looking for love.';
+    const search = 'working in a boring job and looking for love.';
     const chat2 = `Which director has directed a movie that is about the concepts of ${search}? Return a single movie.`;
     const chatResult2 = await graphModel.chatWithData(chat2);
     console.log(JSON.stringify(chatResult2, null, 2));
