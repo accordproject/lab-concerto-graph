@@ -137,8 +137,6 @@ async function run() {
     
     const chat = 'Which director has directed both Johnny Depp and Jonathan Pryce, but not necessarily in the same movie?';
     console.log(`Chat with data: ${chat}`);
-    const cypher = await graphModel.textToCypher(chat);
-    console.log(`Converted to Cypher query: ${cypher}`);
     const chatResult = await graphModel.chatWithData(chat);
     console.log(JSON.stringify(chatResult, null, 2));
  
@@ -147,10 +145,15 @@ async function run() {
     const chatResult2 = await graphModel.chatWithData(chat2);
     console.log(JSON.stringify(chatResult2, null, 2));
 
-    const chat3 = `Which actor famously starred in a film conceptually about journalism, hitchhiking and drugs in Las Vegas?`;
+    const chat3 = `Which actor starred in a movie about the concepts 'journalism, hitchhiking and drugs in Las Vegas'? Return the single most likely result.`;
     console.log(chat3);
     const chatResult3 = await graphModel.chatWithData(chat3);
     console.log(JSON.stringify(chatResult3, null, 2));
+
+    const chat4 = `What is the shortest path between the director Terry Gilliam and actor Johnny Depp?`;
+    console.log(chat4);
+    const chatResult4 = await graphModel.chatWithData(chat4);
+    console.log(chatResult4);
   }
   await graphModel.closeSession(context);
   console.log('done');

@@ -114,9 +114,8 @@ export async function textToCypher(options: GraphModelOptions, text: string, cto
         role: 'system',
         content: `Convert the natural language query delimited by triple quotes to a Neo4J Cypher query.
 Just return the Cypher query, without an explanation for how it works. Do not enclose the result in a markdown code block.
-The nodes and edges in Neo4j are described via the following Accord Project Concerto model:
 
-Concerto mode:
+The nodes and edges in Neo4j are described by the following Accord Project Concerto model:
 \`\`\`
 ${ctoModel}
 \`\`\`
@@ -133,20 +132,33 @@ For example: movie_fulltext is the name of the full text index for the 'Movie' d
 
 Use the token ${EMBEDDINGS_MAGIC} to denote the embedding vector for input text.
 
-Here is an example NeoJ4 query that matches 3 movies by conceptual similarity 
+Here is an example Neo4J Cypher query that matches 3 movies by conceptual similarity 
 (using vector cosine similarity):
+\`\`\`
 MATCH (l:Movie)
-    CALL db.index.vector.queryNodes('movie_summary', 3, ${EMBEDDINGS_MAGIC} )
+    CALL db.index.vector.queryNodes('movie_summary', 10, ${EMBEDDINGS_MAGIC} )
     YIELD node AS similar, score
     MATCH (similar)
     RETURN similar.identifier as identifier, similar.summary as content, score limit 3
+\`\`\`
 
-Natural language query: """${text}
+Use 10 as the second argument to db.index.vector.queryNodes.
+
+Here is an example  Neo4J Cypher query that finds the shortest path between two people 'Dan Selman' and 'Ann Selman':
+\`\`\`
+MATCH
+  (a:Person {name: 'Dan Selman'}),
+  (b:Person {name: 'Ann Selman'}),
+  p = shortestPath((a)-[:RELATED_TO*]-(b))
+RETURN p
+\`\`\`
+
+Convert the following natural language query to Neo4J Cypher: """${text}
 """
 `}];
 
     const params: OpenAI.Chat.ChatCompletionCreateParams = {
-        temperature: 0.1,
+        temperature: 0.05,
         tools: [
             {
                 "type": "function",
@@ -176,7 +188,7 @@ Natural language query: """${text}
         options.logger?.log('Converting query with embeddings to Cypher...');
         chatCompletion = await openai.chat.completions.create(params);
         if (result && chatCompletion.choices[0].message.content && chatCompletion.choices[0].message.content.indexOf(EMBEDDINGS_MAGIC) > 0) {
-            options.logger?.log(`Tool replacing embeddings: ${chatCompletion.choices[0].message.content} with: ${result.query}`);
+            options.logger?.log(`Tool replacing embeddings: ${chatCompletion.choices[0].message.content} with embeddings for: '${result.query}'`);
             const embeddings = await options.embeddingFunction(result.query);
             chatCompletion.choices[0].message.content = chatCompletion.choices[0].message.content.replaceAll(EMBEDDINGS_MAGIC, JSON.stringify(embeddings));
         }
@@ -694,6 +706,7 @@ export class GraphModel {
     async chatWithData(text: string) {
         const cypher = await this.textToCypher(text);
         if (cypher) {
+            this.options.logger?.log(`Generated Cypher: ${cypher}`);
             const context = await this.openSession();
             const transaction = await context.session.beginTransaction();
             try {
