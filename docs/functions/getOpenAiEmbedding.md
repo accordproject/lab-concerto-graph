@@ -2,7 +2,7 @@
 
 ***
 
-[@accordproject/concerto-graph](../globals.md) / getOpenAiEmbedding
+[@accordproject/concerto-graph](../README.md) / getOpenAiEmbedding
 
 # Function: getOpenAiEmbedding()
 
@@ -25,4 +25,4 @@ a promise to an array of numbers
 
 ## Source
 
-[graphmodel.ts:53](https://github.com/accordproject/lab-concerto-graph/blob/cefc9be4fd1dac498d9d3b8abf33d069293dcc53/src/graphmodel.ts#L53)
+[graphmodel.ts:53](https://github.com/accordproject/lab-concerto-graph/blob/0563543f1fdc8f8f027cd4b4eb91d11b07eff3b4/src/graphmodel.ts#L53)

@@ -2,7 +2,7 @@
 
 ***
 
-[@accordproject/concerto-graph](../globals.md) / Context
+[@accordproject/concerto-graph](../README.md) / Context
 
 # Type alias: Context
 
@@ -18,4 +18,4 @@ Runtime context
 
 ## Source
 
-[graphmodel.ts:25](https://github.com/accordproject/lab-concerto-graph/blob/cefc9be4fd1dac498d9d3b8abf33d069293dcc53/src/graphmodel.ts#L25)
+[graphmodel.ts:25](https://github.com/accordproject/lab-concerto-graph/blob/0563543f1fdc8f8f027cd4b4eb91d11b07eff3b4/src/graphmodel.ts#L25)

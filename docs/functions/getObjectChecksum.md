@@ -2,7 +2,7 @@
 
 ***
 
-[@accordproject/concerto-graph](../globals.md) / getObjectChecksum
+[@accordproject/concerto-graph](../README.md) / getObjectChecksum
 
 # Function: getObjectChecksum()
 
@@ -24,4 +24,4 @@ the identifier as a string
 
 ## Source
 
-[graphmodel.ts:165](https://github.com/accordproject/lab-concerto-graph/blob/cefc9be4fd1dac498d9d3b8abf33d069293dcc53/src/graphmodel.ts#L165)
+[graphmodel.ts:165](https://github.com/accordproject/lab-concerto-graph/blob/0563543f1fdc8f8f027cd4b4eb91d11b07eff3b4/src/graphmodel.ts#L165)

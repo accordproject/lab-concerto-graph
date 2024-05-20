@@ -2,7 +2,7 @@
 
 ***
 
-[@accordproject/concerto-graph](../globals.md) / GraphNodeProperties
+[@accordproject/concerto-graph](../README.md) / GraphNodeProperties
 
 # Type alias: GraphNodeProperties
 
@@ -12,4 +12,4 @@ The properties allowed on graph nodes
 
 ## Source
 
-[graphmodel.ts:190](https://github.com/accordproject/lab-concerto-graph/blob/cefc9be4fd1dac498d9d3b8abf33d069293dcc53/src/graphmodel.ts#L190)
+[graphmodel.ts:190](https://github.com/accordproject/lab-concerto-graph/blob/0563543f1fdc8f8f027cd4b4eb91d11b07eff3b4/src/graphmodel.ts#L190)

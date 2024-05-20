@@ -2,7 +2,7 @@
 
 ***
 
-[@accordproject/concerto-graph](../globals.md) / getTextChecksum
+[@accordproject/concerto-graph](../README.md) / getTextChecksum
 
 # Function: getTextChecksum()
 
@@ -24,4 +24,4 @@ the checksum
 
 ## Source
 
-[graphmodel.ts:178](https://github.com/accordproject/lab-concerto-graph/blob/cefc9be4fd1dac498d9d3b8abf33d069293dcc53/src/graphmodel.ts#L178)
+[graphmodel.ts:178](https://github.com/accordproject/lab-concerto-graph/blob/0563543f1fdc8f8f027cd4b4eb91d11b07eff3b4/src/graphmodel.ts#L178)

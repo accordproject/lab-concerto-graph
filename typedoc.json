@@ -9,6 +9,7 @@
     "parametersFormat": "table",
     "enumMembersFormat": "list",
     "typeDeclarationFormat": "list",
-    "indexFormat": "list"
+    "indexFormat": "list",
+    "readme": "none"
   }
   

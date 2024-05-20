@@ -71,3 +71,7 @@ Runtime result:
 
 ### Text Embeddings
 - OPENAI_API_KEY: <optional> the OpenAI API key. If not set embeddings are not computed and written to the agreement graph and similarity search, natural language to Cypher generation ("chat with data") is not possible.
+
+## API Documentation
+
+API documentation is available [here](./docs/README.md).
