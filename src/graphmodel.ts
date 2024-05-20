@@ -115,7 +115,7 @@ Natural language query: """${text}
                 "type": "function",
                 "function": {
                   "name": "get_embeddings",
-                  "description": "Get vector embeddings for a query string",
+                  "description": "Get semantic/conceptual vector embeddings for a query string",
                   "parameters": {
                     "type": "object",
                     "properties": {
@@ -150,13 +150,18 @@ Natural language query: """${text}
                 const embeddings = await options.embeddingFunction(args.query);
                 if(chatCompletion.choices[0].message.content) {
                     options.logger?.log(`Tool replacing embeddings: ${chatCompletion.choices[0].message.content}`);
-                    chatCompletion.choices[0].message.content = chatCompletion.choices[0].message.content.replaceAll(EMBEDDINGS_MAGIC, JSON.stringify(embeddings));   
+                    chatCompletion.choices[0].message.content = chatCompletion.choices[0].message.content.replaceAll(EMBEDDINGS_MAGIC, JSON.stringify(embeddings));
                 }
             }
             else {
                 throw new Error(`Unrecognized tool: ${tool.function}`);
             }
         }
+    }
+    if(options.embeddingFunction && chatCompletion.choices[0].message.content && chatCompletion.choices[0].message.content.indexOf(EMBEDDINGS_MAGIC) > 0) {
+        options.logger?.log(`Non-tool replacing embeddings: ${chatCompletion.choices[0].message.content}`);
+        const embeddings = await options.embeddingFunction(text);
+        chatCompletion.choices[0].message.content = chatCompletion.choices[0].message.content.replaceAll(EMBEDDINGS_MAGIC, JSON.stringify(embeddings));    
     }
     return chatCompletion.choices[0].message.content;
 }

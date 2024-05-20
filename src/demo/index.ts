@@ -142,7 +142,7 @@ async function run() {
     const chatResult = await graphModel.chatWithData(chat);
     console.log(JSON.stringify(chatResult, null, 2));
  
-    const chat2 = `Which director has directed a movie that is about the concepts of ${search}? Return a single movie.`;
+    const chat2 = `Which director has directed a Comedy that is about the concepts of ${search}? Return a single movie.`;
     const chatResult2 = await graphModel.chatWithData(chat2);
     console.log(JSON.stringify(chatResult2, null, 2));
 
