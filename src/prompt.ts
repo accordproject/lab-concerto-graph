@@ -6,7 +6,7 @@ export function getPrompt(ctoModel:string, text:string) : ChatCompletionSystemMe
     return {
         role: 'system',
         content: `Convert the natural language query delimited by triple quotes to a Neo4J Cypher query.
-Just return the Cypher query, without an explanation for how it works. Do not enclose the result in a markdown code block.
+Just return the Cypher query, without an explanation for how it works.
 
 The nodes and edges in Neo4j are described by the following Accord Project Concerto model:
 \`\`\`
@@ -48,6 +48,7 @@ RETURN p
 
 Convert the following natural language query to Neo4J Cypher: """${text}
 """
+Do not enclose the result in a markdown code block.
 `}
 }
 

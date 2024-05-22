@@ -174,6 +174,8 @@ async function run() {
       console.log(result);
       result = await convo.appendUserMessage('Which actor acted in Fear and Loathing in Las Vegas?');
       console.log(result);
+      result = await convo.appendUserMessage('How many movies do we have?');
+      console.log(result);
     }
 
     console.log('done');
