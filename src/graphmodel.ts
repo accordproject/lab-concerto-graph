@@ -1,281 +1,11 @@
 import { ClassDeclaration, Factory, Introspector, ModelManager, ModelUtil, RelationshipDeclaration, Serializer } from "@accordproject/concerto-core";
-import neo4j, { DateTime, Driver, ManagedTransaction, Session } from 'neo4j-driver';
-import * as crypto from 'crypto'
-import OpenAI from "openai";
-
-/**
- * A constant that is used in Open AI prompt
- * to improve the performance of generating Cypher queries
- * that include semantic embeddings
- */
-const EMBEDDINGS_MAGIC = '<EMBEDDINGS>';
-
-/**
- * Definition of a vector (embeddings) index
- */
-type VectorIndex = {
-    property: string;
-    size: number;
-    type: string;
-}
-
-/**
- * Definition of a full text index over some properties
- */
-type FullTextIndex = {
-    properties: Array<string>;
-}
-
-/**
- * Runtime context
- */
-export type Context = {
-    session: Session;
-}
-
-/**
- * A Node type that is used to cache vector embeddings
- */
-type EmbeddingCacheNode = {
-    $class: string;
-    embedding: Array<number>;
-    content: string;
-}
-
-/**
- * Result of a vector similarity search
- */
-export type SimilarityResult = {
-    identifier: string;
-    content: string;
-    score: number;
-}
-
-/**
- * Computes the vector embeddings for a text string.
- * Uses the Open AI `text-embedding-3-small` model.
- * @param text the input text to compute embeddings for
- * @returns a promise to an array of numbers
- */
-export async function getOpenAiEmbedding(text: string): Promise<Array<number>> {
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const response = await openai.embeddings.create({
-        model: "text-embedding-3-small",
-        input: text,
-        encoding_format: "float",
-    });
-    return response.data[0].embedding;
-}
-
-async function callTools(options, openai, params: OpenAI.Chat.ChatCompletionCreateParams, choice: OpenAI.Chat.ChatCompletion.Choice) {
-    if (!choice.message.tool_calls || !choice.message.tool_calls.length) {
-        return;
-    }
-    let result: {query: string} = {query: ''};
-    params.messages.push(choice.message);
-    for (let n = 0; n < choice.message.tool_calls.length; n++) {
-        const tool = choice.message.tool_calls[n];
-        options.logger?.log(`Calling tool: ${tool.function.name}`);
-        if (tool.function.name === 'get_embeddings') {
-            const args = JSON.parse(tool.function.arguments);
-            // if we have multiple tools calling get_embeddings
-            // then we concat them each and return
-            result = {
-                query: result.query.length > 0 ? result.query + ' ' + args.query : args.query,
-            }
-            params.messages.push({ // the result of calling our tool...
-                "role": "tool",
-                "tool_call_id": tool.id,
-                "name": tool.function.name,
-                "content": EMBEDDINGS_MAGIC //JSON.stringify(embeddings)
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any)
-        }
-        else {
-            options.logger?.log(`Unrecognized tool: ${tool.function.name}`);
-        }
-    }
-
-    return result;
-}
-
-/**
- * Converts a natural language query string to a Neo4J Cypher query.
- * @param options configure logger and embedding function
- * @param text the input text to convert to Cypher
- * @param ctoModel the text of all CTO models, used to configure Cypher generation
- * @returns a promise to the Cypher query or null
- */
-export async function textToCypher(options: GraphModelOptions, text: string, ctoModel): Promise<string | null> {
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const messages: any = [{
-        role: 'system',
-        content: `Convert the natural language query delimited by triple quotes to a Neo4J Cypher query.
-Just return the Cypher query, without an explanation for how it works. Do not enclose the result in a markdown code block.
-
-The nodes and edges in Neo4j are described by the following Accord Project Concerto model:
-\`\`\`
-${ctoModel}
-\`\`\`
-
-Concerto properties with the @vector_index decorator have a Neo4J vector index. The name
-of the vector index is the lowercase name of the declaration with '_' and the lowercase 
-name of the property appended. 
-For example: 'movie_summary' is the name of the vector index for the 'Movie.summary' property.
-
-Concerto declarations with any properties with the @fulltext_index decorator have a 
-full text index. The name of the full text index is the lowercase name of the declaration
-with '_fulltext' appended.
-For example: movie_fulltext is the name of the full text index for the 'Movie' declaration.
-
-Use the token ${EMBEDDINGS_MAGIC} to denote the embedding vector for input text.
-
-Here is an example Neo4J Cypher query that matches 3 movies by conceptual similarity 
-(using vector cosine similarity):
-\`\`\`
-MATCH (l:Movie)
-    CALL db.index.vector.queryNodes('movie_summary', 10, ${EMBEDDINGS_MAGIC} )
-    YIELD node AS similar, score
-    MATCH (similar)
-    RETURN similar.identifier as identifier, similar.summary as content, score limit 3
-\`\`\`
-
-Use 10 as the second argument to db.index.vector.queryNodes.
-
-Here is an example  Neo4J Cypher query that finds the shortest path between two people 'Dan Selman' and 'Ann Selman':
-\`\`\`
-MATCH
-  (a:Person {name: 'Dan Selman'}),
-  (b:Person {name: 'Ann Selman'}),
-  p = shortestPath((a)-[:RELATED_TO*]-(b))
-RETURN p
-\`\`\`
-
-Convert the following natural language query to Neo4J Cypher: """${text}
-"""
-`}];
-
-    const params: OpenAI.Chat.ChatCompletionCreateParams = {
-        temperature: 0.05,
-        tools: [
-            {
-                "type": "function",
-                "function": {
-                    "name": "get_embeddings",
-                    "description": "Get semantic/conceptual vector embeddings for a query string",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "query": {
-                                "type": "string",
-                            }
-                        },
-                        "required": ["query"]
-                    }
-                }
-            }
-        ],
-        tool_choice: "auto",
-        messages,
-        model: 'gpt-4o',
-    };
-    let chatCompletion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(params);
-    if (chatCompletion.choices[0].message.tool_calls && options.embeddingFunction) {
-        // modifies params!
-        const result = await callTools(options, openai, params, chatCompletion.choices[0]);
-        options.logger?.log('Converting query with embeddings to Cypher...');
-        chatCompletion = await openai.chat.completions.create(params);
-        if (result && chatCompletion.choices[0].message.content && chatCompletion.choices[0].message.content.indexOf(EMBEDDINGS_MAGIC) > 0) {
-            options.logger?.log(`Tool replacing embeddings: ${chatCompletion.choices[0].message.content} with embeddings for: '${result.query}'`);
-            const embeddings = await options.embeddingFunction(result.query);
-            chatCompletion.choices[0].message.content = chatCompletion.choices[0].message.content.replaceAll(EMBEDDINGS_MAGIC, JSON.stringify(embeddings));
-        }
-    }
-    if (options.embeddingFunction && chatCompletion.choices[0].message.content && chatCompletion.choices[0].message.content.indexOf(EMBEDDINGS_MAGIC) > 0) {
-        options.logger?.log(`Non-tool replacing embeddings: ${chatCompletion.choices[0].message.content}`);
-        const embeddings = await options.embeddingFunction(text);
-        chatCompletion.choices[0].message.content = chatCompletion.choices[0].message.content.replaceAll(EMBEDDINGS_MAGIC, JSON.stringify(embeddings));
-    }
-    return chatCompletion.choices[0].message.content;
-}
-
-/**
- * Computes a deterministic identifier for a set of properties.
- * @param obj the properties of an object
- * @returns the identifier as a string
- */
-export function getObjectChecksum(obj: PropertyBag) {
-    const deterministicReplacer = (_, v) =>
-        typeof v !== 'object' || v === null || Array.isArray(v) ? v :
-            Object.fromEntries(Object.entries(v).sort(([ka], [kb]) =>
-                ka < kb ? -1 : ka > kb ? 1 : 0));
-    return crypto.createHash('sha256').update(JSON.stringify(obj, deterministicReplacer)).digest('hex')
-}
-
-/**
- * Computes a SHA256 checksum for input text
- * @param text the input text
- * @returns the checksum
- */
-export function getTextChecksum(text: string) {
-    return crypto.createHash('sha256').update(text).digest('hex')
-}
-
-/**
- * A untyped set of properties
- */
-type PropertyBag = Record<string, unknown>;
-
-/**
- * The properties allowed on graph nodes
- */
-export type GraphNodeProperties = PropertyBag;
-
-/**
- * Function signature for a function that can calculate
- * vector embeddings for text
- */
-type EmbeddingFunction = (text: string) => Promise<Array<number>>;
-
-/**
- * Function signature for a logger
- */
-type Logger = {
-    log: (text: string) => void;
-}
-
-/**
- * Graph model options, used to configure Concerto Graph
- */
-export type GraphModelOptions = {
-    embeddingFunction?: EmbeddingFunction;
-    logger?: Logger;
-    NEO4J_URL?: string;
-    NEO4J_USER?: string;
-    NEO4J_PASS?: string;
-    logQueries?: boolean;
-}
-
-/**
- * The concerto graph namespaces, used for internal nodes
- */
-export const ROOT_NAMESPACE = 'org.accordproject.graph@1.0.0';
-
-/**
- * The concerto graph model, defines internal nodes 
- */
-export const ROOT_MODEL = `namespace ${ROOT_NAMESPACE}
-concept GraphNode identified by identifier {
-    o String identifier
-}
-concept EmbeddingCacheNode extends GraphNode {
-    o Double[] embedding
-    @vector_index("embedding", 1536, "COSINE")
-    o String content  
-}
-`;
+import neo4j, { DateTime, Driver, ManagedTransaction } from 'neo4j-driver';
+import { Context, EmbeddingCacheNode, FullTextIndex, GraphModelOptions, PropertyBag, SimilarityResult, VectorIndex } from "./types";
+import { ROOT_MODEL, ROOT_NAMESPACE } from "./model";
+import { getTextChecksum, textToCypher } from "./functions";
+import OpenAI from 'openai';
+import { RunnableToolFunction } from "openai/lib/RunnableFunction";
+import { OPENAI_MODEL } from "./prompt";
 
 /**
  * Provides typed-access to Neo4J graph database
@@ -449,6 +179,16 @@ export class GraphModel {
     }
 
     /**
+     * Creates all constraints, full-text and vector indexes
+     * for the model
+     */
+    async createIndexes() {
+        this.createConstraints();
+        this.createFullTextIndexes();
+        this.createVectorIndexes();
+    }
+
+    /**
      * Create Neo4J constraints for the model
      */
     async createConstraints() {
@@ -488,6 +228,9 @@ export class GraphModel {
         this.options.logger?.log('Create vector indexes completed');
     }
 
+    /**
+     * Create fulltext indexes for the model
+     */
     async createFullTextIndexes() {
         this.options.logger?.log('Creating full text indexes...');
         const { session } = await this.openSession();
@@ -688,7 +431,7 @@ export class GraphModel {
     }
 
     /**
-     * Converts a natural language query string to a Cypher query
+     * Converts a natural language query string to a Cypher query (without running it)
      * @param text the input text
      * @returns the Cypher query
      */
@@ -819,5 +562,64 @@ export class GraphModel {
             }
         }
         return newProperties;
+    }
+
+    /**
+     * Creates OpenAI tools for the model
+     * @returns an array of OpenAI tool definitions
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getTools(): Array<RunnableToolFunction<any>> {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const result: Array<RunnableToolFunction<any>> = [];
+        const nodes = this.getGraphNodeDeclarations();
+        for (let n = 0; n < nodes.length; n++) {
+            const node = nodes[n];
+            // the declaration itself
+            result.push({
+                type: "function",
+                function: {
+                    description: `Get a ${node.getName()} by id`,
+                    name: `get_${node.getName().toLowerCase()}_by_id`,
+                    function: ((args: { name: string }) => {
+                        const { name } = args;
+                        return this.query(`MATCH (n:${node.getName()} WHERE n.identifier='${name}') RETURN n;`);
+                    }),
+                    parse: JSON.parse,
+                    parameters: {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                            }
+                        },
+                        "required": ["name"]
+                    }
+                }
+            })
+        }
+        // generic: chat with data...
+        result.push({
+            type: "function",
+            function: {
+                description: `Get data from a natural language query`,
+                name: `chat_with_data`,
+                function: ((args: { query: string }) => {
+                    const { query } = args;
+                    return this.chatWithData(query);
+                }),
+                parse: JSON.parse,
+                parameters: {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                        }
+                    },
+                    "required": ["query"]
+                }
+            }
+        })
+        return result;
     }
 }

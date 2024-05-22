@@ -1,8 +1,8 @@
 {
   "name": "@accordproject/concerto-graph",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Concerto Graph",
-  "main": "dist/src/graphmodel.js",
+  "main": "dist/src/index.js",
   "license": "Apache-2.0",
   "scripts": {
     "prebuild": "npx eslint src/**/*.ts",
