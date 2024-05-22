@@ -2,7 +2,6 @@ import * as crypto from 'crypto'
 import OpenAI from "openai";
 import { EMBEDDINGS_MAGIC, GraphModelOptions, PropertyBag, ToolResponse } from './types';
 import { OPENAI_MODEL, OPENAI_TOOLS, TOOL_GET_EMBEDDINGS_NAME, getPrompt } from './prompt';
-import { ChatCompletionMessageParam } from 'openai/resources';
 
 /**
  * Computes the vector embeddings for a text string.
@@ -18,46 +17,6 @@ export async function getOpenAiEmbedding(text: string): Promise<Array<number>> {
         encoding_format: "float",
     });
     return response.data[0].embedding;
-}
-
-/**
- * Creates fake responses for evaluating the `get_embeddings` tool.
- * We concat all the query strings that need embeddings calculated and
- * we return the magic value `EMBEDDINGS_MAGIC` as the result of calling
- * the tool. We can then replace this magic value with the result of
- * calculating the embeddings. This is *much* faster than allowing Open AI
- * to handle the real tool-response (a large array of embeddings).
- * @param options GraphModel options
- * @param choice the current chat response
- * @returns the tool response, containing query string and new chat messages
- */
-async function handleTools(options, choice: OpenAI.Chat.ChatCompletion.Choice) : Promise<ToolResponse | undefined> {
-    if (!choice.message.tool_calls || !choice.message.tool_calls.length) {
-        return;
-    }
-    const result:ToolResponse = {
-        query: '', 
-        messages: []
-    };
-    result.messages.push(choice.message);
-    for (let n = 0; n < choice.message.tool_calls.length; n++) {
-        const tool = choice.message.tool_calls[n];
-        options.logger?.log(`Calling tool: ${tool.function.name}`);
-        if (tool.function.name !== TOOL_GET_EMBEDDINGS_NAME) {
-            options.logger?.log(`Unrecognized tool: ${tool.function.name}`);
-        }
-        const args = JSON.parse(tool.function.arguments);
-        // if we have multiple tools calling get_embeddings
-        // then we concat them each and return
-        result.query = result.query.length > 0 ? result.query + ' ' + args.query : args.query;
-        result.messages.push({ // the result of calling our tool...
-            "role": "tool",
-            "tool_call_id": tool.id,
-            "content": EMBEDDINGS_MAGIC //JSON.stringify(embeddings)
-        })
-    }
-
-    return result;
 }
 
 /**
