@@ -1,7 +1,7 @@
 import * as crypto from 'crypto'
 import OpenAI from "openai";
-import { EMBEDDINGS_MAGIC, GraphModelOptions, PropertyBag, ToolResponse } from './types';
-import { OPENAI_MODEL, OPENAI_TOOLS, TOOL_GET_EMBEDDINGS_NAME, getPrompt } from './prompt';
+import { EMBEDDINGS_MAGIC, GraphModelOptions, PropertyBag } from './types';
+import { OPENAI_MODEL, OPENAI_TOOLS, getPrompt } from './prompt';
 
 /**
  * Computes the vector embeddings for a text string.
