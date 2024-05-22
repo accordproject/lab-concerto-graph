@@ -26,7 +26,7 @@ Graph model options, used to configure Concerto Graph
 
 ### embeddingFunction?
 
-> `optional` **embeddingFunction**: `EmbeddingFunction`
+> `optional` **embeddingFunction**: [`EmbeddingFunction`](EmbeddingFunction.md)
 
 ### logQueries?
 
@@ -34,8 +34,8 @@ Graph model options, used to configure Concerto Graph
 
 ### logger?
 
-> `optional` **logger**: `Logger`
+> `optional` **logger**: [`Logger`](Logger.md)
 
 ## Source
 
-[graphmodel.ts:208](https://github.com/accordproject/lab-concerto-graph/blob/2c80b4a9bb941195f795971845a6802f68fb0254/src/graphmodel.ts#L208)
+[types.ts:78](https://github.com/accordproject/lab-concerto-graph/blob/7f61653e6520d7e542d820dd570316a83b59870d/src/types.ts#L78)

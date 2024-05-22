@@ -63,12 +63,12 @@ export type GraphNodeProperties = PropertyBag;
  * Function signature for a function that can calculate
  * vector embeddings for text
  */
-type EmbeddingFunction = (text: string) => Promise<Array<number>>;
+export type EmbeddingFunction = (text: string) => Promise<Array<number>>;
 
 /**
  * Function signature for a logger
  */
-type Logger = {
+export type Logger = {
     log: (text: string) => void;
 }
 

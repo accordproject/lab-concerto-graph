@@ -3,9 +3,7 @@ import neo4j, { DateTime, Driver, ManagedTransaction } from 'neo4j-driver';
 import { Context, EmbeddingCacheNode, FullTextIndex, GraphModelOptions, PropertyBag, SimilarityResult, VectorIndex } from "./types";
 import { ROOT_MODEL, ROOT_NAMESPACE } from "./model";
 import { getTextChecksum, textToCypher } from "./functions";
-import OpenAI from 'openai';
 import { RunnableToolFunction } from "openai/lib/RunnableFunction";
-import { OPENAI_MODEL } from "./prompt";
 
 /**
  * Provides typed-access to Neo4J graph database

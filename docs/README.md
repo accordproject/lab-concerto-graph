@@ -6,23 +6,27 @@
 
 ## Classes
 
+- [Conversation](classes/Conversation.md)
 - [GraphModel](classes/GraphModel.md)
 
 ## Type Aliases
 
 - [Context](type-aliases/Context.md)
+- [EmbeddingCacheNode](type-aliases/EmbeddingCacheNode.md)
+- [EmbeddingFunction](type-aliases/EmbeddingFunction.md)
+- [FullTextIndex](type-aliases/FullTextIndex.md)
 - [GraphModelOptions](type-aliases/GraphModelOptions.md)
 - [GraphNodeProperties](type-aliases/GraphNodeProperties.md)
+- [Logger](type-aliases/Logger.md)
+- [PropertyBag](type-aliases/PropertyBag.md)
 - [SimilarityResult](type-aliases/SimilarityResult.md)
+- [ToolResponse](type-aliases/ToolResponse.md)
+- [VectorIndex](type-aliases/VectorIndex.md)
 
 ## Variables
 
-- [ROOT\_MODEL](variables/ROOT_MODEL.md)
-- [ROOT\_NAMESPACE](variables/ROOT_NAMESPACE.md)
+- [EMBEDDINGS\_MAGIC](variables/EMBEDDINGS_MAGIC.md)
 
 ## Functions
 
-- [getObjectChecksum](functions/getObjectChecksum.md)
 - [getOpenAiEmbedding](functions/getOpenAiEmbedding.md)
-- [getTextChecksum](functions/getTextChecksum.md)
-- [textToCypher](functions/textToCypher.md)
