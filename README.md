@@ -30,7 +30,7 @@ concept Movie extends GraphNode {
 }
 ```
 
-TypeScript code:
+## Adding Nodes and Edges to the Graph
 
 ```typescript
     await graphModel.mergeNode(transaction, `${NS}.Movie`, {identifier: 'Brazil', summary: 'The film centres on Sam Lowry, a low-ranking bureaucrat trying to find a woman who appears in his dreams while he is working in a mind-numbing job and living in a small apartment, set in a dystopian world in which there is an over-reliance on poorly maintained (and rather whimsical) machines'} );
@@ -43,13 +43,38 @@ TypeScript code:
     await graphModel.mergeRelationship(transaction, `${NS}.Director`, 'Terry Gilliam', `${NS}.Movie`, 'Brazil', 'directed' );
     
     await graphModel.mergeNode(transaction, `${NS}.Actor`, {identifier: 'Jonathan Pryce'} );
-    await graphModel.mergeRelationship(transaction, `${NS}.Actor`, 'Jonathan Pryce', `${NS}.Movie`, 'Brazil', 'actedIn' );
-    
+    await graphModel.mergeRelationship(transaction, `${NS}.Actor`, 'Jonathan Pryce', `${NS}.Movie`, 'Brazil', 'actedIn' );    
+```
+
+## Fulltext Query
+
+```typescript
+    const fullTextSearch = 'bats';
+    console.log(`Full text search for movies with: '${fullTextSearch}'`);
+    const results = await graphModel.fullTextQuery('Movie', fullTextSearch, 2);
+    console.log(results);  
+```
+
+Output:
+
+```json
+[
+  {
+    summary: 'Duke, under the influence of mescaline, complains of a swarm of giant bats, and inventories their drug stash. They pick up a young hitchhiker and explain their mission: Duke has been assigned by a magazine to cover the Mint 400 motorcycle race in Las Vegas. They bought excessive drugs for the trip, and rented a red Chevrolet Impala convertible.',
+    score: 0.4010826349258423,
+    identifier: 'Fear and Loathing in Las Vegas'
+  }
+]
+```
+
+## Similarity Query
+
+```typescript
     const search = 'Working in a boring job and looking for love.';
     const results = await graphModel.similarityQuery(`${NS}.Movie`, 'embedding', search, 3);
 ```
 
-Runtime result:
+Output:
 
 ```json
 [
@@ -61,10 +86,12 @@ Runtime result:
 ]
 ```
 
+## Chat with your data (Cypher generation)
+
 You can also "chat with your data" — converting natural language queries to Neo4J Cypher
 queries and running them over your graph.
 
-```
+```typescript
     const chat = 'Which director has directed both Johnny Depp and Jonathan Pryce, but not necessarily in the same movie?';
     console.log(`Chat with data: ${chat}`);
     const cypher = await graphModel.textToCypher(chat);
@@ -92,7 +119,7 @@ RETURN d.identifier
  
  Natural language queries can even contain expressions that use the conceptual search (vector similarity)!
 
- ```
+ ```typescript
     const search = 'working in a boring job and looking for love.';
     const chat2 = `Which director has directed a movie that is about the concepts of ${search}? Return a single movie.`;
     const chatResult2 = await graphModel.chatWithData(chat2);
@@ -116,6 +143,49 @@ RETURN d.identifier as director, similar.identifier as movie, similar.summary as
     "score": 0.7065110206604004
   }
 ]
+```
+
+## Conversations
+
+Use the Conversation class to maintain a long-running "chat with your data" context, allowing
+you to ask follow-up questions. This capability exposes the GraphModel as an Open AI Tool —
+allowing the LLM to call into the GraphModel to answer questions.
+
+```typescript
+      const convo = new Conversation(graphModel);
+      let result = await convo.appendUserMessage('Tell me a joke about actors');
+      console.log(result);
+      result = await convo.appendUserMessage('Which actor acted in Fear and Loathing in Las Vegas?');
+      console.log(result);
+      result = await convo.appendUserMessage('Who directed that movie?');
+      console.log(result);
+      result = await convo.appendUserMessage('How many movies do we have?');
+      console.log(result);
+```
+
+Output:
+
+```
+Sure, here's a joke about actors for you:
+
+Why did the scarecrow become an actor?
+
+Because he was outstanding in his field! 😄
+
+> Generated Cypher: MATCH (m:Movie {identifier: 'Fear and Loathing in Las Vegas'})<-[:ACTED_IN]-(a:Actor)
+RETURN a.identifier
+
+Johnny Depp acted in "Fear and Loathing in Las Vegas."
+
+> Generated Cypher: MATCH (m:Movie {identifier: 'Fear and Loathing in Las Vegas'})<-[:DIRECTED]-(d:Director)
+RETURN d.identifier
+
+"Fear and Loathing in Las Vegas" was directed by Terry Gilliam.
+
+> Generated Cypher: MATCH (m:Movie)
+RETURN count(m) as total_movies
+
+We have a total of 3 movies in our database.
 ```
 
 ## Environment Variables

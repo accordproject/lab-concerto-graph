@@ -181,9 +181,9 @@ export class GraphModel {
      * for the model
      */
     async createIndexes() {
-        this.createConstraints();
-        this.createFullTextIndexes();
-        this.createVectorIndexes();
+        await this.createConstraints();
+        await this.createFullTextIndexes();
+        await this.createVectorIndexes();
     }
 
     /**
@@ -581,7 +581,12 @@ export class GraphModel {
                     name: `get_${node.getName().toLowerCase()}_by_id`,
                     function: ((args: { name: string }) => {
                         const { name } = args;
-                        return this.query(`MATCH (n:${node.getName()} WHERE n.identifier='${name}') RETURN n;`);
+                        try {
+                            return this.query(`MATCH (n:${node.getName()} WHERE n.identifier='${name}') RETURN n;`);
+                        }
+                        catch(err) {
+                            return `An error occurred: ${err}`;
+                        }
                     }),
                     parse: JSON.parse,
                     parameters: {
@@ -604,7 +609,12 @@ export class GraphModel {
                 name: `chat_with_data`,
                 function: ((args: { query: string }) => {
                     const { query } = args;
-                    return this.chatWithData(query);
+                    try {
+                        return this.chatWithData(query);
+                    }
+                    catch(err) {
+                        return `An error occurred: ${err}`;
+                    }
                 }),
                 parse: JSON.parse,
                 parameters: {

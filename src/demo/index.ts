@@ -76,9 +76,7 @@ async function run() {
   await graphModel.connect();
   await graphModel.deleteGraph();
   await graphModel.dropIndexes();
-  await graphModel.createConstraints();
-  await graphModel.createVectorIndexes();
-  await graphModel.createFullTextIndexes();
+  await graphModel.createIndexes();
   const context = await graphModel.openSession();
 
   const { session } = context;
@@ -173,6 +171,8 @@ async function run() {
       let result = await convo.appendUserMessage('Tell me a joke about actors');
       console.log(result);
       result = await convo.appendUserMessage('Which actor acted in Fear and Loathing in Las Vegas?');
+      console.log(result);
+      result = await convo.appendUserMessage('Who directed that movie?');
       console.log(result);
       result = await convo.appendUserMessage('How many movies do we have?');
       console.log(result);
