@@ -579,10 +579,10 @@ export class GraphModel {
                 function: {
                     description: `Get a ${node.getName()} by id`,
                     name: `get_${node.getName().toLowerCase()}_by_id`,
-                    function: ((args: { name: string }) => {
+                    function: (async (args: { name: string }) => {
                         const { name } = args;
                         try {
-                            return this.query(`MATCH (n:${node.getName()} WHERE n.identifier='${name}') RETURN n;`);
+                            return await this.query(`MATCH (n:${node.getName()} WHERE n.identifier='${name}') RETURN n;`);
                         }
                         catch(err) {
                             return `An error occurred: ${err}`;
@@ -607,10 +607,10 @@ export class GraphModel {
             function: {
                 description: `Get data from a natural language query`,
                 name: `chat_with_data`,
-                function: ((args: { query: string }) => {
+                function: (async (args: { query: string }) => {
                     const { query } = args;
                     try {
-                        return this.chatWithData(query);
+                        return await this.chatWithData(query);
                     }
                     catch(err) {
                         return `An error occurred: ${err}`;
