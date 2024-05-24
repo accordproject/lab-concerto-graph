@@ -123,6 +123,9 @@ async function run() {
 
     await graphModel.mergeNode(transaction, 'Actor', { identifier: 'Johnny Depp' });
     await graphModel.mergeRelationship(transaction, 'Actor', 'Johnny Depp', 'Movie', 'Fear and Loathing in Las Vegas', 'actedIn');
+
+    await graphModel.mergeNode(transaction, 'Person', { identifier: 'test' });
+    await graphModel.deleteNode(transaction, 'Person', 'test' );
   });
   {
     const fullTextSearch = 'bats';

@@ -28,7 +28,7 @@ Creates a new Conversation
 
 #### Source
 
-[Conversation.ts:22](https://github.com/accordproject/lab-concerto-graph/blob/7f61653e6520d7e542d820dd570316a83b59870d/src/Conversation.ts#L22)
+[Conversation.ts:22](https://github.com/accordproject/lab-concerto-graph/blob/479405ae077f731015a7cc00792f1e687d165a28/src/Conversation.ts#L22)
 
 ## Properties
 
@@ -63,4 +63,4 @@ the final result message
 
 #### Source
 
-[Conversation.ts:35](https://github.com/accordproject/lab-concerto-graph/blob/7f61653e6520d7e542d820dd570316a83b59870d/src/Conversation.ts#L35)
+[Conversation.ts:35](https://github.com/accordproject/lab-concerto-graph/blob/479405ae077f731015a7cc00792f1e687d165a28/src/Conversation.ts#L35)

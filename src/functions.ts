@@ -1,7 +1,7 @@
 import * as crypto from 'crypto'
 import OpenAI from "openai";
 import { EMBEDDINGS_MAGIC, GraphModelOptions, PropertyBag } from './types';
-import { OPENAI_MODEL, OPENAI_TOOLS, getPrompt } from './prompt';
+import { OPENAI_MODEL, OPENAI_TOOLS, TOOL_GET_EMBEDDINGS_NAME, getPrompt } from './prompt';
 
 /**
  * Computes the vector embeddings for a text string.
@@ -33,7 +33,8 @@ export async function textToCypher(options: GraphModelOptions, text: string, cto
     const runner = openai.beta.chat.completions
     .runTools({
         temperature: 0.05,
-        tool_choice: "auto",
+        tool_choice: 'auto',
+        // tool_choice: {type: 'function', function: {name: TOOL_GET_EMBEDDINGS_NAME}},
         model: OPENAI_MODEL,
         messages: [getPrompt(ctoModel, text)],
         tools: OPENAI_TOOLS

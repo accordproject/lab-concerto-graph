@@ -342,6 +342,18 @@ export class GraphModel {
     }
 
     /**
+     * Deletes a node and any relationships attached to the node (DETACH DELETE)
+     * @param transaction the transaction
+     * @param typeName the name of the type
+     * @param identifier the identifier for the node
+     * @returns the result
+     */
+    async deleteNode(transaction: ManagedTransaction, typeName: string, identifier: string) {
+        const decl = this.getGraphNodeDeclaration(typeName);
+        return this.query(`MATCH (n:${decl.getName()} {identifier: '${identifier}'}) DETACH DELETE n`, undefined, transaction);
+    }
+
+    /**
      * Merges a relationship into the graph
      * @param transaction the transaction
      * @param sourceType the source node type of the relationship
