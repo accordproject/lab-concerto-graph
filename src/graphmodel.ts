@@ -40,8 +40,8 @@ export class GraphModel {
             this.driver = neo4j.driver(this.options.NEO4J_URL ?? 'bolt://localhost:7687',
                 neo4j.auth.basic(this.options.NEO4J_USER ?? 'neo4j', this.options.NEO4J_PASS ?? 'password'));
             const serverInfo = await this.driver.getServerInfo()
-            this.options.logger?.log('Connection established')
-            this.options.logger?.log(JSON.stringify(serverInfo))
+            this.options.logger?.info('Connection established')
+            this.options.logger?.info(JSON.stringify(serverInfo))
         }
     }
 
@@ -152,7 +152,7 @@ export class GraphModel {
      * Drop all Neo4J indexes for the model.
      */
     async dropIndexes() {
-        this.options.logger?.log('Dropping indexes...');
+        this.options.logger?.info('Dropping indexes...');
         const { session } = await this.openSession();
         await session?.executeWrite(async tx => {
             const graphNodes = this.getGraphNodeDeclarations();
@@ -173,7 +173,7 @@ export class GraphModel {
             }
         })
         await session.close();
-        this.options.logger?.log('Drop indexes completed');
+        this.options.logger?.info('Drop indexes completed');
     }
 
     /**
@@ -190,7 +190,7 @@ export class GraphModel {
      * Create Neo4J constraints for the model
      */
     async createConstraints() {
-        this.options.logger?.log('Creating constraints...');
+        this.options.logger?.info('Creating constraints...');
         const { session } = await this.openSession();
         await session.executeWrite(async tx => {
             const graphNodes = this.getGraphNodeDeclarations();
@@ -200,14 +200,14 @@ export class GraphModel {
             }
         })
         await session.close();
-        this.options.logger?.log('Create constraints completed');
+        this.options.logger?.info('Create constraints completed');
     }
 
     /**
      * Create vector indexes for the model
      */
     async createVectorIndexes() {
-        this.options.logger?.log('Creating vector indexes...');
+        this.options.logger?.info('Creating vector indexes...');
         const { session } = await this.openSession();
         await session.executeWrite(async tx => {
             const graphNodes = this.getGraphNodeDeclarations();
@@ -223,14 +223,14 @@ export class GraphModel {
             }
         })
         await session.close();
-        this.options.logger?.log('Create vector indexes completed');
+        this.options.logger?.info('Create vector indexes completed');
     }
 
     /**
      * Create fulltext indexes for the model
      */
     async createFullTextIndexes() {
-        this.options.logger?.log('Creating full text indexes...');
+        this.options.logger?.info('Creating full text indexes...');
         const { session } = await this.openSession();
         await session.executeWrite(async tx => {
             const graphNodes = this.getGraphNodeDeclarations();
@@ -245,7 +245,7 @@ export class GraphModel {
             }
         })
         await session.close();
-        this.options.logger?.log('Create full text indexes completed');
+        this.options.logger?.info('Create full text indexes completed');
     }
 
     /**
@@ -300,7 +300,7 @@ export class GraphModel {
      */
     async query(cypher: string, parameters?: PropertyBag, tx?: ManagedTransaction) {
         if (this.options.logQueries) {
-            this.options.logger?.log(cypher);
+            this.options.logger?.info(cypher);
         }
         if (tx) {
             return tx.run(cypher, parameters)
@@ -398,15 +398,15 @@ export class GraphModel {
         const queryResult = await this.query('MATCH (n:EmbeddingCacheNode{identifier:$id}) RETURN n',
             { id: embeddingId }, transaction);
         if (queryResult && queryResult.records.length > 0) {
-            this.options.logger?.log('EmbeddingCacheNode cache hit');
+            this.options.logger?.info('EmbeddingCacheNode cache hit');
             const node = queryResult.records[0].get('n');
             return { $class: `${ROOT_NAMESPACE}.EmbeddingCacheNode`, ...node.properties };
         } else if (this.options.embeddingFunction) {
-            this.options.logger?.log('EmbeddingCacheNode cache miss');
+            this.options.logger?.info('EmbeddingCacheNode cache miss');
             const embedding = await this.options.embeddingFunction(text);
             const nodeProperties = { identifier: embeddingId, embedding, content: text };
             await this.mergeNode(transaction, `${ROOT_NAMESPACE}.EmbeddingCacheNode`, nodeProperties);
-            this.options.logger?.log(`Created cache node ${embeddingId}`);
+            this.options.logger?.info(`Created cache node ${embeddingId}`);
             return { $class: `${ROOT_NAMESPACE}.EmbeddingCacheNode`, ...nodeProperties };
         }
         else {
@@ -434,7 +434,7 @@ export class GraphModel {
             return this.similarityQueryFromEmbedding(typeName, propertyName, textContentNode.embedding, count);
         }
         catch (err) {
-            this.options.logger?.log((err as object).toString());
+            this.options.logger?.error((err as object).toString());
             transaction?.rollback();
             throw err;
         }
@@ -459,7 +459,7 @@ export class GraphModel {
     async chatWithData(text: string) {
         const cypher = await this.textToCypher(text);
         if (cypher) {
-            this.options.logger?.log(`Generated Cypher: ${cypher}`);
+            this.options.logger?.info(`Generated Cypher: ${cypher}`);
             const context = await this.openSession();
             const transaction = await context.session.beginTransaction();
             try {
@@ -473,7 +473,7 @@ export class GraphModel {
                 }) : [];
             }
             catch (err) {
-                this.options.logger?.log((err as object).toString());
+                this.options.logger?.error((err as object).toString());
                 transaction?.rollback();
                 throw err;
             }
@@ -511,7 +511,7 @@ export class GraphModel {
             }) : [];
         }
         catch (err) {
-            this.options.logger?.log((err as object).toString());
+            this.options.logger?.error((err as object).toString());
             throw err;
         }
     }

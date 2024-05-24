@@ -1,7 +1,7 @@
 import * as crypto from 'crypto'
 import OpenAI from "openai";
 import { EMBEDDINGS_MAGIC, GraphModelOptions, PropertyBag } from './types';
-import { OPENAI_MODEL, OPENAI_TOOLS, TOOL_GET_EMBEDDINGS_NAME, getPrompt } from './prompt';
+import { OPENAI_MODEL, OPENAI_TOOLS, getPrompt } from './prompt';
 
 /**
  * Computes the vector embeddings for a text string.
@@ -47,12 +47,12 @@ export async function textToCypher(options: GraphModelOptions, text: string, cto
     const result = await runner.finalContent();
     // now we actually calling the embedding function and replace the EMBEDDINGS_MAGIC
     if (result && options.embeddingFunction && result.indexOf(EMBEDDINGS_MAGIC) > 0) {
-        options.logger?.log(`Replacing embeddings: ${result} with embeddings for: '${query}'`);
+        options.logger?.info(`Replacing embeddings: ${result} with embeddings for: '${query}'`);
         const embeddings = await options.embeddingFunction(query);
         return result.replaceAll(EMBEDDINGS_MAGIC, JSON.stringify(embeddings));
     }
     else {
-        options.logger?.log('No EMBEDDINGS_MAGIC found.');
+        options.logger?.info('No EMBEDDINGS_MAGIC found.');
     }
     return result;
 }

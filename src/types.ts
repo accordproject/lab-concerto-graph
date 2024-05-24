@@ -69,7 +69,16 @@ export type EmbeddingFunction = (text: string) => Promise<Array<number>>;
  * Function signature for a logger
  */
 export type Logger = {
-    log: (text: string) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    info: (message?: any, ...optionalParams: any[]) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    log: (message?: any, ...optionalParams: any[]) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    success: (message?: any, ...optionalParams: any[]) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    error: (message?: any, ...optionalParams: any[]) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    warn: (message?: any, ...optionalParams: any[]) => void;
 }
 
 /**

@@ -25,6 +25,7 @@
 
 ## Variables
 
+- [ConsoleLogger](variables/ConsoleLogger.md)
 - [EMBEDDINGS\_MAGIC](variables/EMBEDDINGS_MAGIC.md)
 
 ## Functions

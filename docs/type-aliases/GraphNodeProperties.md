@@ -12,4 +12,4 @@ The properties allowed on graph nodes
 
 ## Source
 
-[types.ts:60](https://github.com/accordproject/lab-concerto-graph/blob/479405ae077f731015a7cc00792f1e687d165a28/src/types.ts#L60)
+[types.ts:60](https://github.com/accordproject/lab-concerto-graph/blob/8e78133b0c3a8cb9cb393d291d79fc66c6e6c373/src/types.ts#L60)
