@@ -52,6 +52,9 @@ Do not enclose the result in a markdown code block.
 `}
 }
 
+export const CONVERSATION_PROMPT = `Please use our database, which you can access using functions to answer the following questions. 
+Favor using the 'chat_with_data' tool over Fulltext search of Similarity search tools.`;
+
 export const OPENAI_MODEL = 'gpt-4o';
 
 export const TOOL_GET_EMBEDDINGS_NAME = "get_embeddings";

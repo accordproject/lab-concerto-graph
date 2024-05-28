@@ -174,7 +174,9 @@ async function run() {
       const convo = new Conversation(graphModel, {
         toolOptions: {
           getById: true,
-          chatWithData: true
+          chatWithData: true,
+          fullTextSearch: true,
+          similaritySearch: true
         }
       });
       let result = await convo.appendUserMessage('Tell me a joke about actors');

@@ -689,7 +689,7 @@ export class GraphModel {
                 result.push({
                     type: "function",
                     function: {
-                        description: `Full-text search over ${index.type}`,
+                        description: `Fulltext search over ${index.type}`,
                         name: `fulltext_${index.type.toLowerCase()}`,
                         function: (async (args: { search: string, count?: number }) => {
                             const { search, count } = args;
@@ -726,7 +726,7 @@ export class GraphModel {
                 result.push({
                     type: "function",
                     function: {
-                        description: `Similiarity/conceptual search over ${index.type}.${index.property}`,
+                        description: `Similiarity search over ${index.type}.${index.property}`,
                         name: `similarity_${index.type.toLowerCase()}_${index.property.toLowerCase()}`,
                         function: (async (args: { query: string, property: string, count?: number }) => {
                             const { query, count } = args;

@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { RunnableToolFunction } from "openai/lib/RunnableFunction";
-import { OPENAI_MODEL } from "./prompt";
+import { CONVERSATION_PROMPT, OPENAI_MODEL } from "./prompt";
 import { GraphModel } from "./graphmodel";
 import { ConversationOptions } from './types';
 
@@ -41,8 +41,7 @@ export class Conversation {
                 messages: [
                     {
                         role: 'system',
-                        content:
-                            'Please use our database, which you can access using functions to answer the following questions.',
+                        content: CONVERSATION_PROMPT,
                     },
                     { role: 'user', content }
                 ],
