@@ -497,7 +497,7 @@ export class GraphModel {
     async chatWithData(text: string) {
         const cypher = await this.textToCypher(text);
         if (cypher) {
-            // this.options.logger?.info(`Generated Cypher: ${cypher}`);
+            this.options.logger?.info(`Generated Cypher: ${cypher}`);
             const context = await this.openSession();
             const transaction = await context.session.beginTransaction();
             try {
