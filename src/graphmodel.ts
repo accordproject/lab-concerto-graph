@@ -639,7 +639,15 @@ export class GraphModel {
                             const { name } = args;
                             try {
                                 const result = await this.query(`MATCH (n:${node.getName()} WHERE n.identifier='${name}') RETURN n;`);
+                                const ret = result ? result.records.map(v => {
+                                    const result = {};
+                                    v.keys.forEach(k => {
+                                        result[k] = v.get(k);
+                                    })
+                                    return result;
+                                }) : [];
                                 this.options.logger?.info(`get_${node.getName().toLowerCase()}_by_id`, result);
+                                return ret;                
                             }
                             catch (err) {
                                 return `An error occurred: ${err}`;
