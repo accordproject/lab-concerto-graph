@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { RunnableToolFunction } from "openai/lib/RunnableFunction";
 import { OPENAI_MODEL } from "./prompt";
 import { GraphModel } from "./graphmodel";
+import { ConversationOptions } from './types';
 
 /**
  * An LLM conversation about a GraphModel
@@ -19,9 +20,9 @@ export class Conversation {
      * Creates a new Conversation
      * @param graphModel the graph model for the conversation
      */
-    constructor(graphModel: GraphModel) {
+    constructor(graphModel: GraphModel, options:ConversationOptions) {
         this.graphModel = graphModel;
-        this.tools = graphModel.getTools();
+        this.tools = graphModel.getTools(options.toolOptions);
         this.client = new OpenAI();
         this.runner = null;
     }

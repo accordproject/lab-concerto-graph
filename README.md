@@ -152,7 +152,12 @@ you to ask follow-up questions. This capability exposes the GraphModel as an Ope
 allowing the LLM to call into the GraphModel to answer questions.
 
 ```typescript
-      const convo = new Conversation(graphModel);
+      const convo = new Conversation(graphModel, {
+        toolOptions: {
+          getById: true,
+          chatWithData: true
+        }
+      });      
       let result = await convo.appendUserMessage('Tell me a joke about actors');
       console.log(result);
       result = await convo.appendUserMessage('Which actor acted in Fear and Loathing in Las Vegas?');

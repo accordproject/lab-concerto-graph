@@ -12,6 +12,7 @@
 ## Type Aliases
 
 - [Context](type-aliases/Context.md)
+- [ConversationOptions](type-aliases/ConversationOptions.md)
 - [EmbeddingCacheNode](type-aliases/EmbeddingCacheNode.md)
 - [EmbeddingFunction](type-aliases/EmbeddingFunction.md)
 - [FullTextIndex](type-aliases/FullTextIndex.md)
@@ -20,6 +21,7 @@
 - [Logger](type-aliases/Logger.md)
 - [PropertyBag](type-aliases/PropertyBag.md)
 - [SimilarityResult](type-aliases/SimilarityResult.md)
+- [ToolOptions](type-aliases/ToolOptions.md)
 - [ToolResponse](type-aliases/ToolResponse.md)
 - [VectorIndex](type-aliases/VectorIndex.md)
 

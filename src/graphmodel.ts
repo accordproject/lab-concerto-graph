@@ -1,6 +1,6 @@
 import { ClassDeclaration, Factory, Introspector, ModelManager, ModelUtil, Property, RelationshipDeclaration, Serializer } from "@accordproject/concerto-core";
 import neo4j, { DateTime, Driver, ManagedTransaction } from 'neo4j-driver';
-import { Context, EmbeddingCacheNode, FullTextIndex, GraphModelOptions, PropertyBag, SimilarityResult, VectorIndex } from "./types";
+import { Context, EmbeddingCacheNode, FullTextIndex, GraphModelOptions, PropertyBag, SimilarityResult, ToolOptions, VectorIndex } from "./types";
 import { ROOT_MODEL, ROOT_NAMESPACE } from "./model";
 import { getTextChecksum, textToCypher } from "./functions";
 import { RunnableToolFunction } from "openai/lib/RunnableFunction";
@@ -147,7 +147,7 @@ export class GraphModel {
         }
     }
 
-    private getPropertyVectorIndexName(decl:ClassDeclaration, vectorProperty: Property) {
+    private getPropertyVectorIndexName(decl: ClassDeclaration, vectorProperty: Property) {
         return `${decl.getName()}_${vectorProperty.getName()}`.toLowerCase();
     }
 
@@ -614,88 +614,54 @@ export class GraphModel {
      * @returns an array of OpenAI tool definitions
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getTools(): Array<RunnableToolFunction<any>> {
+    getTools(options: ToolOptions): Array<RunnableToolFunction<any>> {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result: Array<RunnableToolFunction<any>> = [];
-        const nodes = this.getGraphNodeDeclarations();
-        for (let n = 0; n < nodes.length; n++) {
-            const node = nodes[n];
-            // the declaration itself
-            result.push({
-                type: "function",
-                function: {
-                    description: `Get a ${node.getName()} by id`,
-                    name: `get_${node.getName().toLowerCase()}_by_id`,
-                    function: (async (args: { name: string }) => {
-                        const { name } = args;
-                        try {
-                            return await this.query(`MATCH (n:${node.getName()} WHERE n.identifier='${name}') RETURN n;`);
-                        }
-                        catch (err) {
-                            return `An error occurred: ${err}`;
-                        }
-                    }),
-                    parse: JSON.parse,
-                    parameters: {
-                        "type": "object",
-                        "properties": {
-                            "name": {
-                                "type": "string",
+        if (options.getById) {
+            const nodes = this.getGraphNodeDeclarations();
+            for (let n = 0; n < nodes.length; n++) {
+                const node = nodes[n];
+                // the declaration itself
+                result.push({
+                    type: "function",
+                    function: {
+                        description: `Get a ${node.getName()} by id`,
+                        name: `get_${node.getName().toLowerCase()}_by_id`,
+                        function: (async (args: { name: string }) => {
+                            const { name } = args;
+                            try {
+                                return await this.query(`MATCH (n:${node.getName()} WHERE n.identifier='${name}') RETURN n;`);
                             }
-                        },
-                        "required": ["name"]
-                    }
-                }
-            })
-        }
-        // full text search
-        const fullTextIndexes = this.getFullTextIndexes();
-        for (let n = 0; n < fullTextIndexes.length; n++) {
-            const index = fullTextIndexes[n];
-            result.push({
-                type: "function",
-                function: {
-                    description: `Full-text search over ${index.type}`,
-                    name: `fulltext_${index.type.toLowerCase()}`,
-                    function: (async (args: { search: string, count?: number }) => {
-                        const { search, count } = args;
-                        try {
-                            return await this.fullTextQuery(index.type, search, count ? count : 10);
-                        }
-                        catch (err) {
-                            return `An error occurred: ${err}`;
-                        }
-                    }),
-                    parse: JSON.parse,
-                    parameters: {
-                        "type": "object",
-                        "properties": {
-                            "search": {
-                                "type": "string",
+                            catch (err) {
+                                return `An error occurred: ${err}`;
+                            }
+                        }),
+                        parse: JSON.parse,
+                        parameters: {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                }
                             },
-                            "count": {
-                                "type": "number",
-                            }
-                        },
-                        "required": ["search"]
+                            "required": ["name"]
+                        }
                     }
-                }
-            })
+                })
+            }
         }
 
-        // similarity search
-        const vectorIndexes = this.getVectorIndexes();
-        for (let n = 0; n < vectorIndexes.length; n++) {
-            const index = vectorIndexes[n];
+        // chat with data...
+        if (options.chatWithData) {
             result.push({
                 type: "function",
                 function: {
-                    description: `Similiarity/conceptual search over ${index.type}.${index.property}`,
-                    name: `similarity_${index.type.toLowerCase()}_${index.property.toLowerCase()}`,
-                    function: (async (args: { query: string, property: string, count?: number }) => {
-                        const { query, count } = args;
+                    description: `Get data from a natural language query`,
+                    name: `chat_with_data`,
+                    function: (async (args: { query: string }) => {
+                        const { query } = args;
                         try {
-                            return await this.similarityQuery(index.type, index.property, query, count ? count : 10);
+                            return await this.chatWithData(query);
                         }
                         catch (err) {
                             return `An error occurred: ${err}`;
@@ -707,9 +673,6 @@ export class GraphModel {
                         "properties": {
                             "query": {
                                 "type": "string",
-                            },
-                            "count": {
-                                "type": "number",
                             }
                         },
                         "required": ["query"]
@@ -718,33 +681,79 @@ export class GraphModel {
             })
         }
 
-        // generic: chat with data...
-        result.push({
-            type: "function",
-            function: {
-                description: `Get data from a natural language query`,
-                name: `chat_with_data`,
-                function: (async (args: { query: string }) => {
-                    const { query } = args;
-                    try {
-                        return await this.chatWithData(query);
-                    }
-                    catch (err) {
-                        return `An error occurred: ${err}`;
-                    }
-                }),
-                parse: JSON.parse,
-                parameters: {
-                    "type": "object",
-                    "properties": {
-                        "query": {
-                            "type": "string",
+        // full text search
+        if (options.fullTextSearch) {
+            const fullTextIndexes = this.getFullTextIndexes();
+            for (let n = 0; n < fullTextIndexes.length; n++) {
+                const index = fullTextIndexes[n];
+                result.push({
+                    type: "function",
+                    function: {
+                        description: `Full-text search over ${index.type}`,
+                        name: `fulltext_${index.type.toLowerCase()}`,
+                        function: (async (args: { search: string, count?: number }) => {
+                            const { search, count } = args;
+                            try {
+                                return await this.fullTextQuery(index.type, search, count ? count : 10);
+                            }
+                            catch (err) {
+                                return `An error occurred: ${err}`;
+                            }
+                        }),
+                        parse: JSON.parse,
+                        parameters: {
+                            "type": "object",
+                            "properties": {
+                                "search": {
+                                    "type": "string",
+                                },
+                                "count": {
+                                    "type": "number",
+                                }
+                            },
+                            "required": ["search"]
                         }
-                    },
-                    "required": ["query"]
-                }
+                    }
+                })
             }
-        })
+        }
+
+        // similarity search
+        if (options.similaritySearch) {
+            const vectorIndexes = this.getVectorIndexes();
+            for (let n = 0; n < vectorIndexes.length; n++) {
+                const index = vectorIndexes[n];
+                result.push({
+                    type: "function",
+                    function: {
+                        description: `Similiarity/conceptual search over ${index.type}.${index.property}`,
+                        name: `similarity_${index.type.toLowerCase()}_${index.property.toLowerCase()}`,
+                        function: (async (args: { query: string, property: string, count?: number }) => {
+                            const { query, count } = args;
+                            try {
+                                return await this.similarityQuery(index.type, index.property, query, count ? count : 10);
+                            }
+                            catch (err) {
+                                return `An error occurred: ${err}`;
+                            }
+                        }),
+                        parse: JSON.parse,
+                        parameters: {
+                            "type": "object",
+                            "properties": {
+                                "query": {
+                                    "type": "string",
+                                },
+                                "count": {
+                                    "type": "number",
+                                }
+                            },
+                            "required": ["query"]
+                        }
+                    }
+                })
+            }
+        }
         return result;
     }
 }

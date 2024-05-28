@@ -12,7 +12,7 @@ An LLM conversation about a GraphModel
 
 ### new Conversation()
 
-> **new Conversation**(`graphModel`): [`Conversation`](Conversation.md)
+> **new Conversation**(`graphModel`, `options`): [`Conversation`](Conversation.md)
 
 Creates a new Conversation
 
@@ -21,6 +21,7 @@ Creates a new Conversation
 | Parameter | Type | Description |
 | :------ | :------ | :------ |
 | `graphModel` | [`GraphModel`](GraphModel.md) | the graph model for the conversation |
+| `options` | [`ConversationOptions`](../type-aliases/ConversationOptions.md) | - |
 
 #### Returns
 
@@ -28,7 +29,7 @@ Creates a new Conversation
 
 #### Source
 
-[Conversation.ts:22](https://github.com/accordproject/lab-concerto-graph/blob/d7fad90b4d14f7e274bc7920a0b495fb75c52dcc/src/Conversation.ts#L22)
+[Conversation.ts:23](https://github.com/accordproject/lab-concerto-graph/blob/8f4fb74348d19b37d903f29e81aaec4eca02a552/src/Conversation.ts#L23)
 
 ## Properties
 
@@ -63,4 +64,4 @@ the final result message
 
 #### Source
 
-[Conversation.ts:35](https://github.com/accordproject/lab-concerto-graph/blob/d7fad90b4d14f7e274bc7920a0b495fb75c52dcc/src/Conversation.ts#L35)
+[Conversation.ts:36](https://github.com/accordproject/lab-concerto-graph/blob/8f4fb74348d19b37d903f29e81aaec4eca02a552/src/Conversation.ts#L36)

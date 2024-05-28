@@ -20,6 +20,32 @@ export type VectorIndex = {
 }
 
 /**
+ * Options for tool generation from the model
+ */
+export type ToolOptions = {
+    /**
+     * Creates tools to retrieve nodes by id
+     */
+    getById?: boolean,
+    /**
+     * Creates tools to retrieve nodes via fulltext search of indexed properties
+     */
+    fullTextSearch?: boolean,
+    /**
+     * Creates tools to retrieve nodes via similarity search of vector indexed properties
+     */
+    similaritySearch?: boolean,
+    /**
+     * Creates tools to retrieve nodes via generation of Cypher from natural language
+     */
+    chatWithData?: boolean
+}
+
+export type ConversationOptions = {
+    toolOptions: ToolOptions
+}
+
+/**
  * Definition of a full text index over some properties
  */
 export type FullTextIndex = {
