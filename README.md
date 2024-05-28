@@ -30,6 +30,14 @@ concept Movie extends GraphNode {
 }
 ```
 
+## Install
+
+```bash
+npm i @accordproject/concerto-graph@unstable --save
+```
+
+> Note you may want to pin to a specific version, however this package is currently changing frequently.
+
 ## Adding Nodes and Edges to the Graph
 
 ```typescript
