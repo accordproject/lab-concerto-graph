@@ -40,8 +40,7 @@ export class GraphModel {
             this.driver = neo4j.driver(this.options.NEO4J_URL ?? 'bolt://localhost:7687',
                 neo4j.auth.basic(this.options.NEO4J_USER ?? 'neo4j', this.options.NEO4J_PASS ?? 'password'));
             const serverInfo = await this.driver.getServerInfo()
-            this.options.logger?.info('Connection established')
-            this.options.logger?.info(JSON.stringify(serverInfo))
+            this.options.logger?.info('Connection established', JSON.stringify(serverInfo))
         }
     }
 
@@ -336,13 +335,16 @@ export class GraphModel {
             this.options.logger?.info(cypher);
         }
         if (tx) {
-            return tx.run(cypher, parameters)
+            const ret = tx.run(cypher, parameters)
+            // this.options.logger?.info('query', ret);
+            return ret;
         }
         else {
             const { session } = await this.openSession();
             const result = await session.executeRead(async tx => {
                 return tx.run(cypher, parameters);
             })
+            // this.options.logger?.info('query', result);
             await session.close();
             return result;
         }
@@ -465,7 +467,9 @@ export class GraphModel {
                 throw new Error(`Internal error. Failed to get embedding for ${searchText}`);
             }
             this.options.logger?.info(`Similarity query of '${typeName}.${propertyName}' for '${searchText}'`);
-            return this.similarityQueryFromEmbedding(typeName, propertyName, textContentNode.embedding, count);
+            const results = await this.similarityQueryFromEmbedding(typeName, propertyName, textContentNode.embedding, count);
+            this.options.logger?.info('similarity', results);
+            return results;
         }
         catch (err) {
             this.options.logger?.error((err as object).toString());
@@ -493,18 +497,20 @@ export class GraphModel {
     async chatWithData(text: string) {
         const cypher = await this.textToCypher(text);
         if (cypher) {
-            this.options.logger?.info(`Generated Cypher: ${cypher}`);
+            // this.options.logger?.info(`Generated Cypher: ${cypher}`);
             const context = await this.openSession();
             const transaction = await context.session.beginTransaction();
             try {
                 const queryResult = await this.query(cypher);
-                return queryResult ? queryResult.records.map(v => {
+                const ret = queryResult ? queryResult.records.map(v => {
                     const result = {};
                     v.keys.forEach(k => {
                         result[k] = v.get(k);
                     })
                     return result;
                 }) : [];
+                this.options.logger?.info('chatWithData', ret);
+                return ret;
             }
             catch (err) {
                 this.options.logger?.error((err as object).toString());
@@ -535,7 +541,7 @@ export class GraphModel {
             props.push('node.identifier');
             const q = `CALL db.index.fulltext.queryNodes("${indexName}", "${searchText}") YIELD node, score RETURN ${props.join(',')}, score limit ${count}`;
             const queryResult = await this.query(q);
-            return queryResult ? queryResult.records.map(v => {
+            const ret = queryResult ? queryResult.records.map(v => {
                 const result = {};
                 fullTextIndex.properties.forEach(p => {
                     result[p] = v.get(`node.${p}`)
@@ -544,6 +550,8 @@ export class GraphModel {
                 result['identifier'] = v.get('node.identifier');
                 return result;
             }) : [];
+            this.options.logger?.info('fulltext', ret);
+            return ret;
         }
         catch (err) {
             this.options.logger?.error((err as object).toString());
@@ -630,7 +638,8 @@ export class GraphModel {
                         function: (async (args: { name: string }) => {
                             const { name } = args;
                             try {
-                                return await this.query(`MATCH (n:${node.getName()} WHERE n.identifier='${name}') RETURN n;`);
+                                const result = await this.query(`MATCH (n:${node.getName()} WHERE n.identifier='${name}') RETURN n;`);
+                                this.options.logger?.info(`get_${node.getName().toLowerCase()}_by_id`, result);
                             }
                             catch (err) {
                                 return `An error occurred: ${err}`;

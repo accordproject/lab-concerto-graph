@@ -47,7 +47,7 @@ export async function textToCypher(options: GraphModelOptions, text: string, cto
     const result = await runner.finalContent();
     // now we actually calling the embedding function and replace the EMBEDDINGS_MAGIC
     if (result && options.embeddingFunction && result.indexOf(EMBEDDINGS_MAGIC) > 0) {
-        options.logger?.info(`Replacing embeddings: ${result} with embeddings for: '${query}'`);
+        options.logger?.info(`Generated Cypher: ${result} with embeddings for: '${query}'`);
         const embeddings = await options.embeddingFunction(query);
         return result.replaceAll(EMBEDDINGS_MAGIC, JSON.stringify(embeddings));
     }

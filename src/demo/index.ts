@@ -132,42 +132,42 @@ async function run() {
     const fullTextSearch = 'bats';
     logger.log(`Full text search for movies with: '${fullTextSearch}'`);
     const results = await graphModel.fullTextQuery('Movie', fullTextSearch, 2);
-    logger.success(JSON.stringify(results, null, 2));  
+    logger.success('results', results);  
   }
   if (process.env.OPENAI_API_KEY) {
     const search = 'working in a boring job and looking for love.';    
     {
       logger.log(`Searching for movies related to: '${search}'`);
       const results = await graphModel.similarityQuery('Movie', 'summary', search, 3);
-      logger.success(JSON.stringify(results, null, 2));  
+      logger.success('results', results);  
     }
     
     {
       const chat = 'Which director has directed both Johnny Depp and Jonathan Pryce, but not necessarily in the same movie?';
       logger.log(`Chat with data: ${chat}`);
       const result = await graphModel.chatWithData(chat);
-      logger.success(JSON.stringify(result, null, 2));  
+      logger.success('results', result);  
     }
  
     {
       const chat = `Which director has directed a Comedy that is about the concepts of ${search}? Return a single movie.`;
       logger.log(chat);
       const result = await graphModel.chatWithData(chat);
-      logger.success(JSON.stringify(result, null, 2));  
+      logger.success('results', result);  
     }
 
     {
       const chat = `Which actor starred in a movie about the concepts 'journalism, hitchhiking and drugs in Las Vegas'? Return the single most likely result.`;
       logger.log(chat);
       const result = await graphModel.chatWithData(chat);
-      logger.success(JSON.stringify(result, null, 2));  
+      logger.success('results', result);  
     }
 
     {
       const chat = `What is the shortest path between the director Terry Gilliam and actor Johnny Depp?`;
       logger.log(chat);
       const result = await graphModel.chatWithData(chat);
-      logger.success(JSON.stringify(result, null, 2));  
+      logger.success('results', result);  
     }
 
     {

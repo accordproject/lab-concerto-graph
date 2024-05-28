@@ -10,4 +10,4 @@
 
 ## Source
 
-[ConsoleLogger.ts:4](https://github.com/accordproject/lab-concerto-graph/blob/d465c4dc872d480e4c8d94031fef52df36ff5b77/src/ConsoleLogger.ts#L4)
+[ConsoleLogger.ts:10](https://github.com/accordproject/lab-concerto-graph/blob/4f9bc9d221981b215096d0e5223994bc8c2351f5/src/ConsoleLogger.ts#L10)
