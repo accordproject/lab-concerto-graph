@@ -255,7 +255,7 @@ export class GraphModel {
             const indexes = this.getVectorIndexes();
             for (let n = 0; n < indexes.length; n++) {
                 const index = indexes[n];
-                console.log(JSON.stringify(index, null, 2));
+                // console.log(JSON.stringify(index, null, 2));
                 await tx.run(`CALL db.index.vector.createNodeIndex("${index.indexName}", "${index.type}", "${index.property}", ${index.size}, "${index.indexType}")`);
             }
         })
