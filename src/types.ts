@@ -15,13 +15,17 @@ export type VectorIndex = {
     property: string;
     size: number;
     type: string;
+    indexType: string;
+    indexName: string;
 }
 
 /**
  * Definition of a full text index over some properties
  */
 export type FullTextIndex = {
+    type: string;
     properties: Array<string>;
+    indexName: string;
 }
 
 /**

@@ -174,9 +174,9 @@ async function run() {
       const convo = new Conversation(graphModel);
       let result = await convo.appendUserMessage('Tell me a joke about actors');
       logger.success(result);  
-      result = await convo.appendUserMessage('Which actor acted in Fear and Loathing in Las Vegas?');
+      result = await convo.appendUserMessage('Which actor is related to Fear and Loathing in Las Vegas?');
       logger.success(result);  
-      result = await convo.appendUserMessage('Who directed that movie?');
+      result = await convo.appendUserMessage('Which director directed that movie?');
       logger.success(result);  
       result = await convo.appendUserMessage('How many movies do we have?');
       logger.success(result);  
