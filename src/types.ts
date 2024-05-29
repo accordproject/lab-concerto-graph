@@ -41,8 +41,26 @@ export type ToolOptions = {
     chatWithData?: boolean
 }
 
+/**
+ * Options used when creating a Conversation
+ */
 export type ConversationOptions = {
+    /**
+     * Which tools to register on the conversation
+     */
     toolOptions: ToolOptions
+
+    /**
+     * The maximum context size for the conversation. Old messages
+     * will be automatically removed once the context size limit is
+     * reached
+     */
+    maxContextSize?: number;
+
+    /**
+     * A logger to use for the Conversation
+     */
+    logger?: Logger;
 }
 
 /**

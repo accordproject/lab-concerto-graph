@@ -8,12 +8,30 @@
 
 > **ConversationOptions**: `object`
 
+Options used when creating a Conversation
+
 ## Type declaration
+
+### logger?
+
+> `optional` **logger**: [`Logger`](Logger.md)
+
+A logger to use for the Conversation
+
+### maxContextSize?
+
+> `optional` **maxContextSize**: `number`
+
+The maximum context size for the conversation. Old messages
+will be automatically removed once the context size limit is
+reached
 
 ### toolOptions
 
 > **toolOptions**: [`ToolOptions`](ToolOptions.md)
 
+Which tools to register on the conversation
+
 ## Source
 
-[types.ts:44](https://github.com/accordproject/lab-concerto-graph/blob/4f9bc9d221981b215096d0e5223994bc8c2351f5/src/types.ts#L44)
+[types.ts:47](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/types.ts#L47)

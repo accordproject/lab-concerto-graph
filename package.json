@@ -42,6 +42,7 @@
   "dependencies": {
     "@accordproject/concerto-core": "^3.16.8",
     "chalk": "^4",
+    "gpt-tokens": "^1.3.6",
     "neo4j-driver": "^5.15.0",
     "openai": "^4.20.1",
     "uuid": "^9.0.1"

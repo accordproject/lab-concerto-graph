@@ -26,4 +26,4 @@ A Node type that is used to cache vector embeddings
 
 ## Source
 
-[types.ts:67](https://github.com/accordproject/lab-concerto-graph/blob/4f9bc9d221981b215096d0e5223994bc8c2351f5/src/types.ts#L67)
+[types.ts:85](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/types.ts#L85)

@@ -177,7 +177,9 @@ async function run() {
           chatWithData: true,
           fullTextSearch: true,
           similaritySearch: true
-        }
+        },
+        maxContextSize: 64000,
+        logger
       });
       let result = await convo.appendUserMessage('Tell me a joke about actors');
       logger.success(result);  

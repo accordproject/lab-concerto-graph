@@ -29,7 +29,7 @@ Creates a new Conversation
 
 #### Source
 
-[Conversation.ts:23](https://github.com/accordproject/lab-concerto-graph/blob/4f9bc9d221981b215096d0e5223994bc8c2351f5/src/Conversation.ts#L23)
+[Conversation.ts:25](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/Conversation.ts#L25)
 
 ## Properties
 
@@ -38,6 +38,7 @@ Creates a new Conversation
 | `client` | `any` |
 | `graphModel` | [`GraphModel`](GraphModel.md) |
 | `messages` | `any` |
+| `options` | [`ConversationOptions`](../type-aliases/ConversationOptions.md) |
 | `runner` | `any` |
 | `tools` | `RunnableToolFunction`\<`any`\>[] |
 
@@ -64,4 +65,23 @@ the final result message
 
 #### Source
 
-[Conversation.ts:36](https://github.com/accordproject/lab-concerto-graph/blob/4f9bc9d221981b215096d0e5223994bc8c2351f5/src/Conversation.ts#L36)
+[Conversation.ts:39](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/Conversation.ts#L39)
+
+***
+
+### getUsedTokens()
+
+> **getUsedTokens**(): `undefined` \| `GPTTokens`
+
+Returns the used tokens for the conversation
+
+#### Returns
+
+`undefined` \| `GPTTokens`
+
+the used tokens for the conversation messages
+or undefined if a user message has not been added
+
+#### Source
+
+[Conversation.ts:79](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/Conversation.ts#L79)
