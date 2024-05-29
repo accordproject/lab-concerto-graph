@@ -438,7 +438,7 @@ export class GraphModel {
             return { $class: `${ROOT_NAMESPACE}.EmbeddingCacheNode`, ...node.properties };
         } else if (this.options.embeddingFunction) {
             this.options.logger?.info('EmbeddingCacheNode cache miss');
-            const embedding = await this.options.embeddingFunction(text);
+            const embedding = await this.options.embeddingFunction(this.options.openAiOptions, text);
             const nodeProperties = { identifier: embeddingId, embedding, content: text };
             await this.mergeNode(transaction, `${ROOT_NAMESPACE}.EmbeddingCacheNode`, nodeProperties);
             this.options.logger?.info(`Created cache node ${embeddingId}`);

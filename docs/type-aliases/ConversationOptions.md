@@ -26,6 +26,12 @@ The maximum context size for the conversation. Old messages
 will be automatically removed once the context size limit is
 reached
 
+### openAiOptions?
+
+> `optional` **openAiOptions**: [`OpenAiOptions`](OpenAiOptions.md)
+
+Options to configure Open AI
+
 ### toolOptions
 
 > **toolOptions**: [`ToolOptions`](ToolOptions.md)
@@ -34,4 +40,4 @@ Which tools to register on the conversation
 
 ## Source
 
-[types.ts:47](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/types.ts#L47)
+[types.ts:79](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/types.ts#L79)

@@ -21,7 +21,7 @@ Creates a new Conversation
 | Parameter | Type | Description |
 | :------ | :------ | :------ |
 | `graphModel` | [`GraphModel`](GraphModel.md) | the graph model for the conversation |
-| `options` | [`ConversationOptions`](../type-aliases/ConversationOptions.md) | - |
+| `options` | [`ConversationOptions`](../type-aliases/ConversationOptions.md) | the options for the conversation |
 
 #### Returns
 
@@ -29,7 +29,7 @@ Creates a new Conversation
 
 #### Source
 
-[Conversation.ts:25](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/Conversation.ts#L25)
+[Conversation.ts:26](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/Conversation.ts#L26)
 
 ## Properties
 
@@ -65,7 +65,7 @@ the final result message
 
 #### Source
 
-[Conversation.ts:39](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/Conversation.ts#L39)
+[Conversation.ts:40](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/Conversation.ts#L40)
 
 ***
 
@@ -84,4 +84,4 @@ or undefined if a user message has not been added
 
 #### Source
 
-[Conversation.ts:79](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/Conversation.ts#L79)
+[Conversation.ts:80](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/Conversation.ts#L80)

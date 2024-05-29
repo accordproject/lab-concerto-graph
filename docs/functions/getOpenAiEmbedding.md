@@ -6,7 +6,7 @@
 
 # Function: getOpenAiEmbedding()
 
-> **getOpenAiEmbedding**(`text`): `Promise`\<`number`[]\>
+> **getOpenAiEmbedding**(`options`, `text`): `Promise`\<`number`[]\>
 
 Computes the vector embeddings for a text string.
 Uses the Open AI `text-embedding-3-small` model.
@@ -15,6 +15,7 @@ Uses the Open AI `text-embedding-3-small` model.
 
 | Parameter | Type | Description |
 | :------ | :------ | :------ |
+| `options` | `undefined` \| [`OpenAiOptions`](../type-aliases/OpenAiOptions.md) | - |
 | `text` | `string` | the input text to compute embeddings for |
 
 ## Returns
@@ -25,4 +26,4 @@ a promise to an array of numbers
 
 ## Source
 
-[functions.ts:12](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/functions.ts#L12)
+[functions.ts:12](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/functions.ts#L12)

@@ -19,6 +19,7 @@
 - [GraphModelOptions](type-aliases/GraphModelOptions.md)
 - [GraphNodeProperties](type-aliases/GraphNodeProperties.md)
 - [Logger](type-aliases/Logger.md)
+- [OpenAiOptions](type-aliases/OpenAiOptions.md)
 - [PropertyBag](type-aliases/PropertyBag.md)
 - [SimilarityResult](type-aliases/SimilarityResult.md)
 - [ToolOptions](type-aliases/ToolOptions.md)

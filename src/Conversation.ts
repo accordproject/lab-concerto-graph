@@ -21,11 +21,12 @@ export class Conversation {
     /**
      * Creates a new Conversation
      * @param graphModel the graph model for the conversation
+     * @param options the options for the conversation
      */
     constructor(graphModel: GraphModel, options:ConversationOptions) {
         this.graphModel = graphModel;
         this.tools = graphModel.getTools(options.toolOptions);
-        this.client = new OpenAI();
+        this.client = new OpenAI(options.openAiOptions?.clientOptions);
         this.runner = null;
         this.options = options;
     }
@@ -40,7 +41,7 @@ export class Conversation {
         if(!this.runner) {
             this.runner = this.client.beta.chat.completions
             .runTools({
-                model: OPENAI_MODEL,
+                model: this.options.openAiOptions?.model ?? OPENAI_MODEL,
                 messages: [
                     {
                         role: 'system',
@@ -54,7 +55,7 @@ export class Conversation {
         else {
             const messages = this.runner.messages.concat([{ role: 'user', content }]);
             this.runner = this.client.beta.chat.completions.runTools({
-                model: OPENAI_MODEL,
+                model: this.options.openAiOptions?.model ?? OPENAI_MODEL,
                 messages,
                 tools: this.tools
             });    
@@ -79,7 +80,7 @@ export class Conversation {
     getUsedTokens() : GPTTokens | undefined {
         if(this.runner && this.runner.messages && this.runner.messages.length > 1) {
             return new GPTTokens({
-                model   : OPENAI_MODEL,
+                model : this.options.openAiOptions?.model ?? OPENAI_MODEL,
                 messages: this.runner.messages,
             })    
         }

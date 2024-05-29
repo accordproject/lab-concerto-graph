@@ -1,5 +1,7 @@
+import { supportModelType } from 'gpt-tokens';
 import { Session } from 'neo4j-driver';
-import { ChatCompletionMessageParam } from 'openai/resources/chat';
+import { ClientOptions } from 'openai';
+import { ChatCompletionMessageParam, ChatCompletionToolChoiceOption } from 'openai/resources/chat';
 
 /**
  * A constant that is used in Open AI prompt
@@ -42,6 +44,36 @@ export type ToolOptions = {
 }
 
 /**
+ * Options used when calling Open AI
+ */
+export type OpenAiOptions = {
+    /**
+     * Name of the model to use, defaults to OPENAI_MODEL
+     */
+    model?: supportModelType;
+
+    /**
+     * Name of the embedding model to use
+     */
+    embeddingModel?: 'text-embedding-3-small';
+
+    /**
+     * Passed to the OpenAI client constructor
+     */
+    clientOptions?: ClientOptions
+
+    /**
+     * Temperature to use
+     */
+    temperature?: number,
+
+    /**
+     * Tool choice
+     */
+    tool_choice?: ChatCompletionToolChoiceOption,
+}
+
+/**
  * Options used when creating a Conversation
  */
 export type ConversationOptions = {
@@ -61,6 +93,11 @@ export type ConversationOptions = {
      * A logger to use for the Conversation
      */
     logger?: Logger;
+
+    /**
+     * Options to configure Open AI
+     */
+    openAiOptions?: OpenAiOptions
 }
 
 /**
@@ -111,7 +148,7 @@ export type GraphNodeProperties = PropertyBag;
  * Function signature for a function that can calculate
  * vector embeddings for text
  */
-export type EmbeddingFunction = (text: string) => Promise<Array<number>>;
+export type EmbeddingFunction = (options:OpenAiOptions|undefined, text: string) => Promise<Array<number>>;
 
 /**
  * Function signature for a logger
@@ -139,6 +176,10 @@ export type GraphModelOptions = {
     NEO4J_USER?: string;
     NEO4J_PASS?: string;
     logQueries?: boolean;
+    /**
+     * Options to configure Open AI
+     */
+    openAiOptions?: OpenAiOptions
 }
 
 /**

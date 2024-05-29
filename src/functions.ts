@@ -1,6 +1,6 @@
 import * as crypto from 'crypto'
 import OpenAI from "openai";
-import { EMBEDDINGS_MAGIC, GraphModelOptions, PropertyBag } from './types';
+import { EMBEDDINGS_MAGIC, GraphModelOptions, OpenAiOptions, PropertyBag } from './types';
 import { OPENAI_MODEL, OPENAI_TOOLS, getPrompt } from './prompt';
 
 /**
@@ -9,10 +9,10 @@ import { OPENAI_MODEL, OPENAI_TOOLS, getPrompt } from './prompt';
  * @param text the input text to compute embeddings for
  * @returns a promise to an array of numbers
  */
-export async function getOpenAiEmbedding(text: string): Promise<Array<number>> {
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+export async function getOpenAiEmbedding(options:OpenAiOptions|undefined, text: string): Promise<Array<number>> {
+    const openai = new OpenAI(options?.clientOptions);
     const response = await openai.embeddings.create({
-        model: "text-embedding-3-small",
+        model: options?.embeddingModel ?? 'text-embedding-3-small',
         input: text,
         encoding_format: "float",
     });
@@ -28,14 +28,14 @@ export async function getOpenAiEmbedding(text: string): Promise<Array<number>> {
  */
 export async function textToCypher(options: GraphModelOptions, text: string, ctoModel): Promise<string | null> {
     // set up our call to Open AI, including our tools
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const openai = new OpenAI(options.openAiOptions?.clientOptions);
     let query = '';
     const runner = openai.beta.chat.completions
     .runTools({
-        temperature: 0.05,
-        tool_choice: 'auto',
+        temperature: options.openAiOptions?.temperature ?? 0.05,
+        tool_choice: options.openAiOptions?.tool_choice ?? 'auto',
         // tool_choice: {type: 'function', function: {name: TOOL_GET_EMBEDDINGS_NAME}},
-        model: OPENAI_MODEL,
+        model: options.openAiOptions?.model ?? OPENAI_MODEL,
         messages: [getPrompt(ctoModel, text)],
         tools: OPENAI_TOOLS
     })
@@ -48,7 +48,7 @@ export async function textToCypher(options: GraphModelOptions, text: string, cto
     // now we actually calling the embedding function and replace the EMBEDDINGS_MAGIC
     if (result && options.embeddingFunction && result.indexOf(EMBEDDINGS_MAGIC) > 0) {
         options.logger?.info(`Generated Cypher: ${result} with embeddings for: '${query}'`);
-        const embeddings = await options.embeddingFunction(query);
+        const embeddings = await options.embeddingFunction(options.openAiOptions, query);
         return result.replaceAll(EMBEDDINGS_MAGIC, JSON.stringify(embeddings));
     }
     else {

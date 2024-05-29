@@ -34,4 +34,4 @@ Definition of a vector (embeddings) index
 
 ## Source
 
-[types.ts:14](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/types.ts#L14)
+[types.ts:16](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/types.ts#L16)

@@ -31,7 +31,7 @@ Creates a new instance of GraphModel
 
 #### Source
 
-[graphmodel.ts:24](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L24)
+[graphmodel.ts:24](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L24)
 
 ## Properties
 
@@ -65,7 +65,7 @@ the query results
 
 #### Source
 
-[graphmodel.ts:497](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L497)
+[graphmodel.ts:497](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L497)
 
 ***
 
@@ -87,7 +87,7 @@ Closes a database context.
 
 #### Source
 
-[graphmodel.ts:66](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L66)
+[graphmodel.ts:66](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L66)
 
 ***
 
@@ -103,7 +103,7 @@ Connects to Neo4J
 
 #### Source
 
-[graphmodel.ts:38](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L38)
+[graphmodel.ts:38](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L38)
 
 ***
 
@@ -119,7 +119,7 @@ Create Neo4J constraints for the model
 
 #### Source
 
-[graphmodel.ts:198](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L198)
+[graphmodel.ts:198](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L198)
 
 ***
 
@@ -135,7 +135,7 @@ Create fulltext indexes for the model
 
 #### Source
 
-[graphmodel.ts:268](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L268)
+[graphmodel.ts:268](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L268)
 
 ***
 
@@ -152,7 +152,7 @@ for the model
 
 #### Source
 
-[graphmodel.ts:189](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L189)
+[graphmodel.ts:189](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L189)
 
 ***
 
@@ -168,7 +168,7 @@ Create vector indexes for the model
 
 #### Source
 
-[graphmodel.ts:250](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L250)
+[graphmodel.ts:250](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L250)
 
 ***
 
@@ -184,7 +184,7 @@ Delete all nodes/edges in the graph
 
 #### Source
 
-[graphmodel.ts:286](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L286)
+[graphmodel.ts:286](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L286)
 
 ***
 
@@ -210,7 +210,7 @@ the result
 
 #### Source
 
-[graphmodel.ts:386](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L386)
+[graphmodel.ts:386](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L386)
 
 ***
 
@@ -226,7 +226,7 @@ Drop all Neo4J indexes for the model.
 
 #### Source
 
-[graphmodel.ts:160](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L160)
+[graphmodel.ts:160](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L160)
 
 ***
 
@@ -252,7 +252,7 @@ the items
 
 #### Source
 
-[graphmodel.ts:531](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L531)
+[graphmodel.ts:531](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L531)
 
 ***
 
@@ -268,7 +268,7 @@ Get all the full text indexes for the model
 
 #### Source
 
-[graphmodel.ts:233](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L233)
+[graphmodel.ts:233](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L233)
 
 ***
 
@@ -292,7 +292,7 @@ an array of OpenAI tool definitions
 
 #### Source
 
-[graphmodel.ts:625](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L625)
+[graphmodel.ts:625](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L625)
 
 ***
 
@@ -308,7 +308,7 @@ Get all the vector indexes for the model
 
 #### Source
 
-[graphmodel.ts:215](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L215)
+[graphmodel.ts:215](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L215)
 
 ***
 
@@ -337,7 +337,7 @@ the graph node
 
 #### Source
 
-[graphmodel.ts:363](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L363)
+[graphmodel.ts:363](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L363)
 
 ***
 
@@ -366,7 +366,7 @@ the source node
 
 #### Source
 
-[graphmodel.ts:401](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L401)
+[graphmodel.ts:401](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L401)
 
 ***
 
@@ -391,7 +391,7 @@ a promise to a Context for the database.
 
 #### Source
 
-[graphmodel.ts:54](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L54)
+[graphmodel.ts:54](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L54)
 
 ***
 
@@ -417,7 +417,7 @@ the query results
 
 #### Source
 
-[graphmodel.ts:333](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L333)
+[graphmodel.ts:333](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L333)
 
 ***
 
@@ -444,7 +444,7 @@ an array of similar nodes, up to the count limit
 
 #### Source
 
-[graphmodel.ts:460](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L460)
+[graphmodel.ts:460](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L460)
 
 ***
 
@@ -469,7 +469,7 @@ Performs a similarity search on nodes with text content
 
 #### Source
 
-[graphmodel.ts:302](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L302)
+[graphmodel.ts:302](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L302)
 
 ***
 
@@ -493,4 +493,4 @@ the Cypher query
 
 #### Source
 
-[graphmodel.ts:486](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/graphmodel.ts#L486)
+[graphmodel.ts:486](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/graphmodel.ts#L486)

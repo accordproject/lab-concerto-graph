@@ -6,7 +6,7 @@
 
 # Type alias: EmbeddingFunction()
 
-> **EmbeddingFunction**: (`text`) => `Promise`\<`number`[]\>
+> **EmbeddingFunction**: (`options`, `text`) => `Promise`\<`number`[]\>
 
 Function signature for a function that can calculate
 vector embeddings for text
@@ -15,6 +15,7 @@ vector embeddings for text
 
 | Parameter | Type |
 | :------ | :------ |
+| `options` | [`OpenAiOptions`](OpenAiOptions.md) \| `undefined` |
 | `text` | `string` |
 
 ## Returns
@@ -23,4 +24,4 @@ vector embeddings for text
 
 ## Source
 
-[types.ts:114](https://github.com/accordproject/lab-concerto-graph/blob/3060b0365eb0e289450a7d39202b9f90093326a0/src/types.ts#L114)
+[types.ts:151](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/types.ts#L151)
