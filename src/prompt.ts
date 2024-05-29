@@ -52,8 +52,8 @@ Do not enclose the result in a markdown code block.
 `}
 }
 
-export const CONVERSATION_PROMPT = `Please use our database, which you can access using functions to answer the following questions. 
-When possible use the 'chat_with_data' tool first to query the database before trying other tools.`;
+export const CONVERSATION_PROMPT = `Please use our database, which you can access using tools to answer the following questions. 
+Query the database using the 'chat_with_data' tool before trying other tools.`;
 
 export const OPENAI_MODEL = 'gpt-4o';
 
