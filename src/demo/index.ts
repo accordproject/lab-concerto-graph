@@ -191,6 +191,21 @@ async function run() {
       logger.success(result);  
     }
 
+    {
+      const convo = new Conversation(graphModel, {
+        toolOptions: {
+          getById: true,
+          chatWithData: true,
+          fullTextSearch: true,
+          similaritySearch: true
+        },
+        maxContextSize: 64000,
+        logger
+      });
+      const messages = await convo.runMessages([convo.getSystemMessage()], 'Which director is related to Brazil?');
+      logger.success('messages', messages);  
+    }
+
     logger.log('done');
     process.exit();
   }
