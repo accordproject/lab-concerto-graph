@@ -29,7 +29,7 @@ Creates a new Conversation
 
 #### Source
 
-[Conversation.ts:26](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/Conversation.ts#L26)
+[Conversation.ts:26](https://github.com/accordproject/lab-concerto-graph/blob/2b51c2d9858660c3c1b92d2eae736c7866fe4297/src/Conversation.ts#L26)
 
 ## Properties
 
@@ -65,7 +65,33 @@ the final result message
 
 #### Source
 
-[Conversation.ts:40](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/Conversation.ts#L40)
+[Conversation.ts:81](https://github.com/accordproject/lab-concerto-graph/blob/2b51c2d9858660c3c1b92d2eae736c7866fe4297/src/Conversation.ts#L81)
+
+***
+
+### getSystemMessage()
+
+> **getSystemMessage**(): `object`
+
+The system message
+
+#### Returns
+
+`object`
+
+the system message for the conversation
+
+##### content
+
+> **content**: `string` = `CONVERSATION_PROMPT`
+
+##### role
+
+> **role**: `string` = `'system'`
+
+#### Source
+
+[Conversation.ts:68](https://github.com/accordproject/lab-concerto-graph/blob/2b51c2d9858660c3c1b92d2eae736c7866fe4297/src/Conversation.ts#L68)
 
 ***
 
@@ -84,4 +110,30 @@ or undefined if a user message has not been added
 
 #### Source
 
-[Conversation.ts:80](https://github.com/accordproject/lab-concerto-graph/blob/3d5d649d27e9d0d9074fa504f52f930c3cf2ecbe/src/Conversation.ts#L80)
+[Conversation.ts:111](https://github.com/accordproject/lab-concerto-graph/blob/2b51c2d9858660c3c1b92d2eae736c7866fe4297/src/Conversation.ts#L111)
+
+***
+
+### runMessages()
+
+> **runMessages**(`messages`, `content`): `Promise`\<`any`\>
+
+Reinitializes the messages, adds a user messages and runs
+to completion. Used for stateless execution.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| :------ | :------ | :------ |
+| `messages` | `any` | the existing messages |
+| `content` | `string` | the user message to add to the conversation |
+
+#### Returns
+
+`Promise`\<`any`\>
+
+all the messages
+
+#### Source
+
+[Conversation.ts:41](https://github.com/accordproject/lab-concerto-graph/blob/2b51c2d9858660c3c1b92d2eae736c7866fe4297/src/Conversation.ts#L41)
