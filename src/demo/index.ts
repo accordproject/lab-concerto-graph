@@ -4,6 +4,7 @@ import { Conversation } from '../Conversation';
 const NS = 'demo.graph@1.0.0';
 
 const MODEL = `
+@description("Ask questions about movies and the actors and directors related to movies.")
 namespace ${NS}
 import org.accordproject.graph@1.0.0.{GraphNode}
 
@@ -78,6 +79,13 @@ async function run() {
   await graphModel.deleteGraph();
   await graphModel.dropIndexes();
   await graphModel.createIndexes();
+  await graphModel.mergeConcertoModels();
+  const models = await graphModel.queryConcertoModels();
+  if(models) {
+    models.forEach(m => {
+      console.log(m);
+    });  
+  }
   const context = await graphModel.openSession();
 
   const { session } = context;

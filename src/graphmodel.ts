@@ -5,6 +5,8 @@ import { ROOT_MODEL, ROOT_NAMESPACE } from "./model";
 import { getTextChecksum, textToCypher } from "./functions";
 import { RunnableToolFunction } from "openai/lib/RunnableFunction";
 
+const MODELS_SEP = '----/----';
+
 /**
  * Provides typed-access to Neo4J graph database
  * with the nodes and relationships for the graph defined
@@ -57,6 +59,39 @@ export class GraphModel {
             return { session };
         }
         throw new Error('No neo4j driver!');
+    }
+
+    /**
+     * Stores the Concerto Models in the graph
+     * @returns promise to indicate the operation is complete
+     */
+    async mergeConcertoModels() {
+        const context = await this.openSession();
+        const { session } = context;
+        await session.executeWrite(async transaction => {
+            await this.mergeNode(transaction, 'org.accordproject.graph@1.0.0.ConcertoModels', { identifier: '000', content: this.getConcertoModels() });
+        });
+        this.options.logger?.info('Stored Concerto Models');
+        return this.closeSession(context);
+    }
+
+    /**
+     * Reads the concerto model from the graph. To write it
+     * use the mergeConcertoModels method.
+     * @returns returns the concerto model from the graph
+     */
+    async queryConcertoModels() : Promise<Array<string>|undefined> {
+        const context = await this.openSession();
+        let result:Array<string>|undefined = undefined;
+        const { session } = context;
+        await session.executeRead(async transaction => {
+            const models = await this.query('MATCH(m:ConcertoModels where m.identifier="000") return m.content;', undefined, transaction);
+            if(models.records.length === 1) {
+                result = models.records[0].get('m.content').split(MODELS_SEP).filter( m => m.trim().length > 0);
+            }
+        });
+        await this.closeSession(context);
+        return result;
     }
 
     /**
@@ -479,13 +514,20 @@ export class GraphModel {
     }
 
     /**
+     * Returns the Concerto models as a string
+     * @returns the concerto models as a string
+     */
+    getConcertoModels() : string {
+        return this.modelManager.getModels().reduce((prev, cur) => prev += MODELS_SEP + cur.content, '');
+    }
+
+    /**
      * Converts a natural language query string to a Cypher query (without running it)
      * @param text the input text
      * @returns the Cypher query
      */
     async textToCypher(text: string): Promise<string | null> {
-        const ctoModels = this.modelManager.getModels().reduce((prev, cur) => prev += cur.content, '');
-        return textToCypher(this.options, text, ctoModels);
+        return textToCypher(this.options, text, this.getConcertoModels());
     }
 
     /**
