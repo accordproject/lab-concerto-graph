@@ -23,14 +23,16 @@ export class GraphModel {
      * @param graphModels an array of strings in Concerto CTO format
      * @param options the options used to configure the instance
      */
-    constructor(graphModels: Array<string>, options: GraphModelOptions) {
+    constructor(graphModels: Array<string>|undefined, options: GraphModelOptions) {
         this.options = options;
         this.modelManager = new ModelManager({ strict: true, enableMapType: true });
         this.modelManager.addCTOModel(ROOT_MODEL, 'root.cto');
-        graphModels.forEach((model, index) => {
-            const mf = this.modelManager.addCTOModel(model, `model-${index}.cto`, true);
-            this.defaultNamespace = mf.getNamespace();
-        })
+        if(graphModels) {
+            graphModels.forEach((model, index) => {
+                const mf = this.modelManager.addCTOModel(model, `model-${index}.cto`, true);
+                this.defaultNamespace = mf.getNamespace();
+            })
+        }
         this.modelManager.validateModelFiles();
     }
 
@@ -92,6 +94,23 @@ export class GraphModel {
         });
         await this.closeSession(context);
         return result;
+    }
+
+    /**
+     * Clears the models in the ModelManager and then loads the models 
+     * from the graph and populates the ModelManager
+     */
+    async loadConcertoModels() {
+        const models = await this.queryConcertoModels();
+        if(!models) {
+            throw new Error('Failed to query models');
+        }
+        this.modelManager.clearModelFiles();
+        models.forEach((model, index) => {
+            const mf = this.modelManager.addCTOModel(model, `model-${index}.cto`, true);
+            this.defaultNamespace = mf.getNamespace();
+        })
+        this.modelManager.validateModelFiles();
     }
 
     /**

@@ -26,4 +26,4 @@ Result of a vector similarity search
 
 ## Source
 
-[types.ts:131](https://github.com/accordproject/lab-concerto-graph/blob/2b51c2d9858660c3c1b92d2eae736c7866fe4297/src/types.ts#L131)
+[types.ts:131](https://github.com/accordproject/lab-concerto-graph/blob/f35b2c83def67024267ebc86c933947c7d1a0f62/src/types.ts#L131)
