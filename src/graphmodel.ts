@@ -64,6 +64,29 @@ export class GraphModel {
     }
 
     /**
+     * Returns a description of the GraphModel. The description
+     * is suppied using the '@description' decorator on the defaultNamespace
+     * @returns the description of this domain model or undefined if it is not
+     * specified
+     * @param ns the namespace to use, defaults to the namespace of the last
+     * model file added
+     */
+    getDescription(ns?:string) : string|undefined {
+        const namespace = ns ? ns : this.defaultNamespace;
+        if(namespace) {
+            const mf = this.modelManager.getModelFile(namespace);
+            const description = mf.getDecorator('description');
+            if(description) {
+                const args = description.getArguments();
+                if(args.length > 0) {
+                    return args[0].toString();
+                }
+            }
+        }
+        return undefined;
+    }
+
+    /**
      * Stores the Concerto Models in the graph
      * @returns promise to indicate the operation is complete
      */
