@@ -14,21 +14,7 @@ This project uses a [Concerto model](https://concerto.accordproject.org) to defi
 ![demo](demo.png)
 [Demo](src/demo/index.ts)
 
-In a few lines of code you can define a Concerto data model validated graph and perform a vector similarity search over
-nodes with text content.
-
-Concerto model (snippet):
-
-```
-concept Movie extends GraphNode {
-  @vector_index("summary", 1536, "COSINE")
-  o Double[] embedding optional
-  @embedding
-  o String summary optional
-  @label("IN_GENRE")
-  --> Genre[] genres optional
-}
-```
+In a few lines of code you can define a Concerto data model validated graph and perform a vector similarity search over nodes with text content.
 
 ## Graph Model
 
