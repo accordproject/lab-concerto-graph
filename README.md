@@ -30,6 +30,44 @@ concept Movie extends GraphNode {
 }
 ```
 
+## Graph Model
+
+The data model for the graph (the definition of the structure of the nodes and edges) is specified
+using a [Concerto model](https://concerto.accordproject.org). The nodes in the graph should extend
+`GraphNode`. 
+
+Here is a very simple sample model for books: each book is related to a Genre. A book has a
+`summary` property that is full-text searchable as well as searchable using a vector
+similarity search.
+
+```
+@description("Ask questions about books and book genres.")
+namespace test@1.0.0
+import org.accordproject.graph@1.0.0.{GraphNode}
+
+@questions("How many books genres do we have?")
+concept Genre extends GraphNode {
+}
+
+@questions("How many books do we have?")
+concept Book extends GraphNode {
+  o Double[] embedding optional
+  @vector_index("embedding", 1536, "COSINE")
+  @fulltext_index
+  o String summary optional
+  @label("IN_GENRE")
+  --> Genre[] genres optional
+}
+```
+
+### Decorators
+
+1. `@description` is placed on the namespace and describes the general types of questions that can be asked of this model
+2. `@vector_index` is placed on `String` properties to make them vector similarity searchable. The first argument to the decorator specifies the name of a property of type `Double[]` that is used to store the vector embeddings for the text in the `String` property
+3. `@fulltext_index` is placed on `String` properties to make them fulltext searchable
+4. `@label` is placed on relationships `-->` to indicate the type of an edge
+5. `@questions` is placed on concepts that extend `GraphNode` to supply sample questions that can be asked about this type of node
+
 ## Install
 
 ```bash
