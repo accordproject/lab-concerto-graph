@@ -49,7 +49,7 @@ import org.accordproject.graph@1.0.0.{GraphNode}
 concept Genre extends GraphNode {
 }
 
-@questions("How many books do we have?")
+@questions("How many books do we have?", "Find a book about the theme of natural disasters", "Find a book containing the phrase 'Disaster Capitalism'")
 concept Book extends GraphNode {
   o Double[] embedding optional
   @vector_index("embedding", 1536, "COSINE")
