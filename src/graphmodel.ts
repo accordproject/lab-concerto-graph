@@ -87,6 +87,29 @@ export class GraphModel {
     }
 
     /**
+     * Retrieves an array of questions for the graph nodes in
+     * the model. Questions are specified using the '@questions'
+     * decorator on GraphNodes.
+     * @returns an array of the questions associated with all the 
+     * graph nodes
+     */
+    getQuestions() : Array<string> {
+        const results:Array<string> = [];
+        const decls = this.getGraphNodeDeclarations();
+        for(let n=0; n < decls.length; n++) {
+            const decl = decls[n];
+            const questions = decl.getDecorator('questions');
+            if(questions) {
+                const args = questions.getArguments();
+                args.forEach( arg => {
+                    results.push(arg.toString())
+                })
+            }
+        }
+        return results;
+    }
+
+    /**
      * Stores the Concerto Models in the graph
      * @returns promise to indicate the operation is complete
      */

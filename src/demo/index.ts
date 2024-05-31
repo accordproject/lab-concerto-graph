@@ -38,6 +38,7 @@ concept Person extends GraphNode {
   --> Movie[] directed optional
 }
 
+@questions("Which actor is related to Fear and Loathing in Las Vegas?")
 concept Actor extends Person {
 }
 
@@ -54,6 +55,7 @@ concept User extends Person {
 concept Genre extends GraphNode {
 }
 
+@questions("How many movies do we have?")
 concept Movie extends GraphNode {
   o Double[] embedding optional
   @vector_index("embedding", 1536, "COSINE")
@@ -192,12 +194,14 @@ async function run() {
       });
       let result = await convo.appendUserMessage('Tell me a joke about actors');
       logger.success(result);  
-      result = await convo.appendUserMessage('Which actor is related to Fear and Loathing in Las Vegas?');
-      logger.success(result);  
-      result = await convo.appendUserMessage('Which director directed that movie?');
-      logger.success(result);  
-      result = await convo.appendUserMessage('How many movies do we have?');
-      logger.success(result);  
+      result = await convo.appendUserMessage('Which director directed Fear and Loathing in Las Vegas?');
+      logger.success(result);
+      const questions = graphModel.getQuestions();
+      for(let n=0; n < questions.length; n++) {
+        const q = questions[n];
+        result = await convo.appendUserMessage(q);
+        logger.success(result);  
+      }
     }
 
     {
@@ -211,7 +215,7 @@ async function run() {
         maxContextSize: 64000,
         logger
       });
-      const messages = await convo.runMessages([convo.getSystemMessage()], 'Which director is related to Brazil?');
+      const messages = await convo.runMessages([convo.getSystemMessage()], 'Which director is related to the movie Brazil?');
       logger.success('messages', messages);  
     }
 
