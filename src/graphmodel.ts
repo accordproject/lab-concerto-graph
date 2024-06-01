@@ -733,7 +733,8 @@ export class GraphModel {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result: Array<RunnableToolFunction<any>> = [];
         if (options.getById) {
-            const nodes = this.getGraphNodeDeclarations();
+            const nodes = this.getGraphNodeDeclarations()
+                .filter( decl => decl.getDecorator('notool') === null);
             for (let n = 0; n < nodes.length; n++) {
                 const node = nodes[n];
                 // the declaration itself
