@@ -82,8 +82,11 @@ async function run() {
   await graphModel.dropIndexes();
   await graphModel.createIndexes();
   await graphModel.mergeConcertoModels(); // saves models to graph
-  await graphModel.loadConcertoModels(); // loads models from graph
+  // await graphModel.loadConcertoModels(); // loads models from graph
   const context = await graphModel.openSession();
+
+  // const tools = graphModel.getTools({chatWithData: true, fullTextSearch: true, getById: true, similaritySearch: true});
+  // console.log(JSON.stringify(tools, null , 2));
 
   const { session } = context;
   await session.executeWrite(async transaction => {

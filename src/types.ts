@@ -15,6 +15,7 @@ export const EMBEDDINGS_MAGIC = '<EMBEDDINGS>';
  */
 export type VectorIndex = {
     property: string;
+    embeddingProperty: string;
     size: number;
     type: string;
     indexType: string;

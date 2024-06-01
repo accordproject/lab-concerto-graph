@@ -189,7 +189,7 @@ export class GraphModel {
         const result = intro.getClassDeclarations()
             .filter(d => d.getAllSuperTypeDeclarations()
                 .find(s => s.getFullyQualifiedName() === `${ROOT_NAMESPACE}.GraphNode`));
-    return notools ? result.filter( decl => decl.getDecorator('notool') === null) : result;
+    return notools ? result.filter(decl => !decl.getDecorator('notool')) : result;
     }
 
     private getFullTextIndex(decl): FullTextIndex | undefined {
@@ -240,7 +240,8 @@ export class GraphModel {
         }
         return {
             type: property.getParent().getName(),
-            property: propertyName,
+            property: property.getName(),
+            embeddingProperty: embeddingProperty.getName(),
             size: property.getDecorator('vector_index').getArguments()[1] as unknown as number,
             indexType: property.getDecorator('vector_index').getArguments()[2] as unknown as string,
             indexName: this.getPropertyVectorIndexName(property.getParent(), property)
@@ -358,7 +359,7 @@ export class GraphModel {
             for (let n = 0; n < indexes.length; n++) {
                 const index = indexes[n];
                 // console.log(JSON.stringify(index, null, 2));
-                await tx.run(`CALL db.index.vector.createNodeIndex("${index.indexName}", "${index.type}", "${index.property}", ${index.size}, "${index.indexType}")`);
+                await tx.run(`CALL db.index.vector.createNodeIndex("${index.indexName}", "${index.type}", "${index.embeddingProperty}", ${index.size}, "${index.indexType}")`);
             }
         })
         await session.close();
@@ -695,7 +696,7 @@ export class GraphModel {
                             throw new Error(`Can only calculate embedding for string properties`);
                         }
                         const cacheNode = await this.mergeEmbeddingCacheNode(transaction, value as string);
-                        newProperties[vectorIndex.property] = cacheNode.embedding;
+                        newProperties[vectorIndex.embeddingProperty] = cacheNode.embedding;
                         newProperties[key] = value;
                     }
                     else if (property.getType() === 'DateTime') {
