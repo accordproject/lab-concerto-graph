@@ -184,11 +184,12 @@ export class GraphModel {
         return decl;
     }
 
-    private getGraphNodeDeclarations() {
+    private getGraphNodeDeclarations(notools?:boolean) {
         const intro = new Introspector(this.modelManager);
-        return intro.getClassDeclarations()
+        const result = intro.getClassDeclarations()
             .filter(d => d.getAllSuperTypeDeclarations()
                 .find(s => s.getFullyQualifiedName() === `${ROOT_NAMESPACE}.GraphNode`));
+    return notools ? result.filter( decl => decl.getDecorator('notool') === null) : result;
     }
 
     private getFullTextIndex(decl): FullTextIndex | undefined {
@@ -311,10 +312,11 @@ export class GraphModel {
 
     /**
      * Get all the vector indexes for the model
+     * @param notools filter out indexes for declarations with @notools decorator
      */
-    getVectorIndexes(): Array<VectorIndex> {
+    getVectorIndexes(notools?:boolean): Array<VectorIndex> {
         const result: Array<VectorIndex> = [];
-        const graphNodes = this.getGraphNodeDeclarations();
+        const graphNodes = this.getGraphNodeDeclarations(notools);
         for (let n = 0; n < graphNodes.length; n++) {
             const graphNode = graphNodes[n];
             const vectorProperties = graphNode.getProperties().filter(p => p.getDecorator('vector_index'));
@@ -329,10 +331,11 @@ export class GraphModel {
 
     /**
      * Get all the full text indexes for the model
+     * @param notools filter out indexes for declarations with @notools decorator
      */
-    getFullTextIndexes(): Array<FullTextIndex> {
+    getFullTextIndexes(notools?:boolean): Array<FullTextIndex> {
         const result: Array<FullTextIndex> = [];
-        const graphNodes = this.getGraphNodeDeclarations();
+        const graphNodes = this.getGraphNodeDeclarations(notools);
         for (let n = 0; n < graphNodes.length; n++) {
             const graphNode = graphNodes[n];
             const fullTextIndex = this.getFullTextIndex(graphNode);
@@ -733,8 +736,7 @@ export class GraphModel {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result: Array<RunnableToolFunction<any>> = [];
         if (options.getById) {
-            const nodes = this.getGraphNodeDeclarations()
-                .filter( decl => decl.getDecorator('notool') === null);
+            const nodes = this.getGraphNodeDeclarations(true);
             for (let n = 0; n < nodes.length; n++) {
                 const node = nodes[n];
                 // the declaration itself
@@ -808,7 +810,7 @@ export class GraphModel {
 
         // full text search
         if (options.fullTextSearch) {
-            const fullTextIndexes = this.getFullTextIndexes();
+            const fullTextIndexes = this.getFullTextIndexes(true);
             for (let n = 0; n < fullTextIndexes.length; n++) {
                 const index = fullTextIndexes[n];
                 result.push({
@@ -845,7 +847,7 @@ export class GraphModel {
 
         // similarity search
         if (options.similaritySearch) {
-            const vectorIndexes = this.getVectorIndexes();
+            const vectorIndexes = this.getVectorIndexes(true);
             for (let n = 0; n < vectorIndexes.length; n++) {
                 const index = vectorIndexes[n];
                 result.push({

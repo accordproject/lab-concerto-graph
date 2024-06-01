@@ -83,12 +83,6 @@ async function run() {
   await graphModel.createIndexes();
   await graphModel.mergeConcertoModels(); // saves models to graph
   await graphModel.loadConcertoModels(); // loads models from graph
-  const models = await graphModel.queryConcertoModels(); // get models from graph
-  if(models) {
-    models.forEach(m => {
-      console.log(m);
-    });  
-  }
   const context = await graphModel.openSession();
 
   const { session } = context;
