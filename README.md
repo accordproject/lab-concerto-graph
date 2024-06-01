@@ -55,6 +55,7 @@ concept Book extends GraphNode {
 3. `@fulltext_index` is placed on `String` properties to make them fulltext searchable
 4. `@label` is placed on relationships `-->` to indicate the type of an edge
 5. `@questions` is placed on concepts that extend `GraphNode` to supply sample questions that can be asked about this type of node
+6. `@notool` is placed on concepts that extend `GraphNode` to not create Open AI tools for the concept
 
 ## Install
 
