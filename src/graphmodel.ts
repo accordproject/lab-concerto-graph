@@ -2,7 +2,7 @@ import { ClassDeclaration, Factory, Introspector, ModelManager, ModelUtil, Prope
 import neo4j, { DateTime, Driver, ManagedTransaction } from 'neo4j-driver';
 import { Context, EmbeddingCacheNode, FullTextIndex, GraphModelOptions, PropertyBag, SimilarityResult, ToolOptions, VectorIndex } from "./types";
 import { ROOT_MODEL, ROOT_NAMESPACE } from "./model";
-import { getTextChecksum, textToCypher } from "./functions";
+import { getTextChecksum, textToCypher, textToGraph } from "./functions";
 import { RunnableToolFunction } from "openai/lib/RunnableFunction";
 
 const MODELS_SEP = '----/----';
@@ -23,11 +23,11 @@ export class GraphModel {
      * @param graphModels an array of strings in Concerto CTO format
      * @param options the options used to configure the instance
      */
-    constructor(graphModels: Array<string>|undefined, options: GraphModelOptions) {
+    constructor(graphModels: Array<string> | undefined, options: GraphModelOptions) {
         this.options = options;
         this.modelManager = new ModelManager({ strict: true, enableMapType: true });
         this.modelManager.addCTOModel(ROOT_MODEL, 'root.cto');
-        if(graphModels) {
+        if (graphModels) {
             graphModels.forEach((model, index) => {
                 const mf = this.modelManager.addCTOModel(model, `model-${index}.cto`, true);
                 this.defaultNamespace = mf.getNamespace();
@@ -71,14 +71,14 @@ export class GraphModel {
      * @param ns the namespace to use, defaults to the namespace of the last
      * model file added
      */
-    getDescription(ns?:string) : string|undefined {
+    getDescription(ns?: string): string | undefined {
         const namespace = ns ? ns : this.defaultNamespace;
-        if(namespace) {
+        if (namespace) {
             const mf = this.modelManager.getModelFile(namespace);
             const description = mf.getDecorator('description');
-            if(description) {
+            if (description) {
                 const args = description.getArguments();
-                if(args.length > 0) {
+                if (args.length > 0) {
                     return args[0].toString();
                 }
             }
@@ -93,15 +93,15 @@ export class GraphModel {
      * @returns an array of the questions associated with all the 
      * graph nodes
      */
-    getQuestions() : Array<string> {
-        const results:Array<string> = [];
+    getQuestions(): Array<string> {
+        const results: Array<string> = [];
         const decls = this.getGraphNodeDeclarations();
-        for(let n=0; n < decls.length; n++) {
+        for (let n = 0; n < decls.length; n++) {
             const decl = decls[n];
             const questions = decl.getDecorator('questions');
-            if(questions) {
+            if (questions) {
                 const args = questions.getArguments();
-                args.forEach( arg => {
+                args.forEach(arg => {
                     results.push(arg.toString())
                 })
             }
@@ -128,14 +128,14 @@ export class GraphModel {
      * use the mergeConcertoModels method.
      * @returns returns the concerto model from the graph
      */
-    async queryConcertoModels() : Promise<Array<string>|undefined> {
+    async queryConcertoModels(): Promise<Array<string> | undefined> {
         const context = await this.openSession();
-        let result:Array<string>|undefined = undefined;
+        let result: Array<string> | undefined = undefined;
         const { session } = context;
         await session.executeRead(async transaction => {
             const models = await this.query('MATCH(m:ConcertoModels where m.identifier="000") return m.content;', undefined, transaction);
-            if(models.records.length === 1) {
-                result = models.records[0].get('m.content').split(MODELS_SEP).filter( m => m.trim().length > 0);
+            if (models.records.length === 1) {
+                result = models.records[0].get('m.content').split(MODELS_SEP).filter(m => m.trim().length > 0);
             }
         });
         await this.closeSession(context);
@@ -148,7 +148,7 @@ export class GraphModel {
      */
     async loadConcertoModels() {
         const models = await this.queryConcertoModels();
-        if(!models) {
+        if (!models) {
             throw new Error('Failed to query models');
         }
         this.modelManager.clearModelFiles();
@@ -184,12 +184,12 @@ export class GraphModel {
         return decl;
     }
 
-    private getGraphNodeDeclarations(notools?:boolean) {
+    private getGraphNodeDeclarations(notools?: boolean) {
         const intro = new Introspector(this.modelManager);
         const result = intro.getClassDeclarations()
             .filter(d => d.getAllSuperTypeDeclarations()
                 .find(s => s.getFullyQualifiedName() === `${ROOT_NAMESPACE}.GraphNode`));
-    return notools ? result.filter(decl => !decl.getDecorator('notool')) : result;
+        return notools ? result.filter(decl => !decl.getDecorator('notool')) : result;
     }
 
     private getFullTextIndex(decl): FullTextIndex | undefined {
@@ -315,7 +315,7 @@ export class GraphModel {
      * Get all the vector indexes for the model
      * @param notools filter out indexes for declarations with @notools decorator
      */
-    getVectorIndexes(notools?:boolean): Array<VectorIndex> {
+    getVectorIndexes(notools?: boolean): Array<VectorIndex> {
         const result: Array<VectorIndex> = [];
         const graphNodes = this.getGraphNodeDeclarations(notools);
         for (let n = 0; n < graphNodes.length; n++) {
@@ -334,7 +334,7 @@ export class GraphModel {
      * Get all the full text indexes for the model
      * @param notools filter out indexes for declarations with @notools decorator
      */
-    getFullTextIndexes(notools?:boolean): Array<FullTextIndex> {
+    getFullTextIndexes(notools?: boolean): Array<FullTextIndex> {
         const result: Array<FullTextIndex> = [];
         const graphNodes = this.getGraphNodeDeclarations(notools);
         for (let n = 0; n < graphNodes.length; n++) {
@@ -586,7 +586,7 @@ export class GraphModel {
      * Returns the Concerto models as a string
      * @returns the concerto models as a string
      */
-    getConcertoModels() : string {
+    getConcertoModels(): string {
         return this.modelManager.getModels().reduce((prev, cur) => prev += MODELS_SEP + cur.content, '');
     }
 
@@ -597,6 +597,48 @@ export class GraphModel {
      */
     async textToCypher(text: string): Promise<string | null> {
         return textToCypher(this.options, text, this.getConcertoModels());
+    }
+
+    /**
+     * Converts a natural language block to a set of graph nodes/edges
+     * @param text the input text
+     * @returns the graph nodes/edges
+     */
+    async textToGraph(text: string) {
+        return textToGraph(this.options, text, this.getConcertoModels());
+    }
+
+    /**
+    * Converts a natural language block to a set of graph nodes/edges and adds them to the graph.
+    * @param text the input text
+    */
+    async mergeTextToGraph(text: string) {
+        const context = await this.openSession();
+        const { session } = context;
+        let nodeCount = 0;
+        let edgeCount = 0;
+        await session.executeWrite(async transaction => {
+            const elements = await textToGraph(this.options, text, this.getConcertoModels());
+            if (elements) {
+                for (let n = 0; n < elements.length; n++) {
+                    const element = elements[n];
+                    this.options.logger?.info(`Creating ${JSON.stringify(element)}...`);
+                    switch (element.type) {
+                        case 'node':
+                            await this.mergeNode(transaction, element.label, element.properties ? element.properties : {});
+                            nodeCount++;
+                            break;
+                        case 'relationship':
+                            await this.mergeRelationship(transaction, element.startNodeLabel, element.startNodeIdentifier, 
+                                element.endNodeLabel, element.endNodeIdentifier, element.startNodePropertyName);
+                            edgeCount++;
+                            break;
+                    }
+                }
+            }
+        });
+        this.options.logger?.info(`Created ${nodeCount} nodes and ${edgeCount} edges.`);
+        return this.closeSession(context);
     }
 
     /**
@@ -758,7 +800,7 @@ export class GraphModel {
                                     return result;
                                 }) : [];
                                 this.options.logger?.info(`get_${node.getName().toLowerCase()}_by_id`, result);
-                                return ret;                
+                                return ret;
                             }
                             catch (err) {
                                 return `An error occurred: ${err}`;

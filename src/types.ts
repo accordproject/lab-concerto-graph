@@ -22,6 +22,23 @@ export type VectorIndex = {
     indexName: string;
 }
 
+export type TextToGraphNode = {
+    type: 'node',
+    label: string,
+    properties: PropertyBag,
+}
+
+export type TextToGraphRelationship = {
+    type: 'relationship',
+    startNodePropertyName: string,
+    startNodeLabel: string,
+    startNodeIdentifier: string,
+    endNodeLabel: string,
+    endNodeIdentifier: string,
+}
+
+export type TextToGraphElement = TextToGraphNode | TextToGraphRelationship;
+
 /**
  * Options for tool generation from the model
  */

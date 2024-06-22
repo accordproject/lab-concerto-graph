@@ -2,7 +2,28 @@ import { ChatCompletionSystemMessageParam } from "openai/resources";
 import { EMBEDDINGS_MAGIC } from "./types";
 import { RunnableToolFunction } from "openai/lib/RunnableFunction";
 
-export function getPrompt(ctoModel:string, text:string) : ChatCompletionSystemMessageParam {
+export function getTextToGraphPrompt(ctoModel:string, text:string) : ChatCompletionSystemMessageParam {
+    return {
+        role: 'system',
+        content: `You are an assistant that converts natural language text into a property graph. 
+
+A property graph is composed of nodes, with relationships between the nodes. Nodes have a label and a set of properties associated.
+The structure of the nodes and relationships that you output must conform to a schema defined by an Accord Project Concerto model. 
+Here is the Concerto model you must use:
+
+\`\`\`
+${ctoModel}
+\`\`\`
+
+To create a node you output a JSON object of the form: {"type" : "node", "label" : "Person", "properties" : <PROPS>} where PROPS are the properties of the Person node.
+To create a relationship you output a JSON object of the form: {"type" : "relationship", "startNodeLabel" : "Actor", "startNodeIdentifier" : "Johnny Depp", "endNodeLabel": "Movie", "endNodeIdentifier" : "Fear and Loathing in Las Vegas", "startNodePropertyName" : "actedIn" }.
+
+Convert the following natural language to a JSON object with an elements property that is an array of nodes and relationships: """${text}
+"""
+`}
+}
+
+export function getTextToCypherPrompt(ctoModel:string, text:string) : ChatCompletionSystemMessageParam {
     return {
         role: 'system',
         content: `Convert the natural language query delimited by triple quotes to a Neo4J Cypher query.
@@ -25,12 +46,12 @@ For example: movie_fulltext is the name of the full text index for the 'Movie' d
 
 Use the token ${EMBEDDINGS_MAGIC} to denote the embedding vector for input text.
 
-Here is an example Neo4J Cypher query that matches 3 movies by conceptual similarity 
+Here is an example Neo4J Cypher query that matches 3 movies summaries by conceptual similarity 
 (using vector cosine similarity):
 \`\`\`
 MATCH (l:Movie)
     CALL db.index.vector.queryNodes('movie_summary', 10, ${EMBEDDINGS_MAGIC} )
-    YIELD node AS similar, score
+    YIELD node AS similar1, score
     MATCH (similar)
     RETURN similar.identifier as identifier, similar.summary as content, score limit 3
 \`\`\`
