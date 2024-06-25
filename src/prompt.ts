@@ -7,7 +7,7 @@ export function getTextToGraphPrompt(ctoModel:string, text:string) : ChatComplet
         role: 'system',
         content: `You are an assistant that converts natural language text into a property graph. 
 
-A property graph is composed of nodes, with relationships between the nodes. Nodes have a label and a set of properties associated.
+A property graph is composed of nodes, with relationships between the nodes. Nodes have a label and a set of properties.
 The structure of the nodes and relationships that you output must conform to a schema defined by an Accord Project Concerto model. 
 Here is the Concerto model you must use:
 

@@ -12,6 +12,10 @@ Definition of a vector (embeddings) index
 
 ## Type declaration
 
+### embeddingProperty
+
+> **embeddingProperty**: `string`
+
 ### indexName
 
 > **indexName**: `string`
@@ -34,4 +38,4 @@ Definition of a vector (embeddings) index
 
 ## Source
 
-[types.ts:16](https://github.com/accordproject/lab-concerto-graph/blob/bb2157507ab9fc0933aed80f61ecfe646c993a37/src/types.ts#L16)
+[types.ts:16](https://github.com/accordproject/lab-concerto-graph/blob/5f526300879649c63bb20f7c002e7b5dd5cd22c3/src/types.ts#L16)

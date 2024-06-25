@@ -617,26 +617,38 @@ export class GraphModel {
         const { session } = context;
         let nodeCount = 0;
         let edgeCount = 0;
-        await session.executeWrite(async transaction => {
-            const elements = await textToGraph(this.options, text, this.getConcertoModels());
-            if (elements) {
-                for (let n = 0; n < elements.length; n++) {
-                    const element = elements[n];
-                    this.options.logger?.info(`Creating ${JSON.stringify(element)}...`);
-                    switch (element.type) {
-                        case 'node':
-                            await this.mergeNode(transaction, element.label, element.properties ? element.properties : {});
-                            nodeCount++;
-                            break;
-                        case 'relationship':
-                            await this.mergeRelationship(transaction, element.startNodeLabel, element.startNodeIdentifier, 
-                                element.endNodeLabel, element.endNodeIdentifier, element.startNodePropertyName);
-                            edgeCount++;
-                            break;
-                    }
+        const elements = await textToGraph(this.options, text, this.getConcertoModels());
+        if (elements) {
+            for (let n = 0; n < elements.length; n++) {
+                const element = elements[n];
+                this.options.logger?.info(`Creating ${JSON.stringify(element)}...`);
+                switch (element.type) {
+                    case 'node':
+                        try {
+                            await session.executeWrite(async transaction => {
+                                await this.mergeNode(transaction, element.label, element.properties ? element.properties : {});
+                                nodeCount++;
+                            });
+                        }
+                        catch (err) {
+                            this.options.logger?.error(`Failed to create node ${err}`);
+                        }
+                        break;
+                    case 'relationship':
+                        try {
+                            await session.executeWrite(async transaction => {
+                                await this.mergeRelationship(transaction, element.startNodeLabel, element.startNodeIdentifier,
+                                    element.endNodeLabel, element.endNodeIdentifier, element.startNodePropertyName);
+                                edgeCount++;
+                            });
+                        }
+                        catch (err) {
+                            this.options.logger?.error(`Failed to create edge ${err}`);
+                        }
+                        break;
                 }
             }
-        });
+        }
         this.options.logger?.info(`Created ${nodeCount} nodes and ${edgeCount} edges.`);
         return this.closeSession(context);
     }
