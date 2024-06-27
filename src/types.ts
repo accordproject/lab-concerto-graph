@@ -198,6 +198,7 @@ export type GraphModelOptions = {
      * Options to configure Open AI
      */
     openAiOptions?: OpenAiOptions
+    textToGraphPrompt?: string;
 }
 
 /**

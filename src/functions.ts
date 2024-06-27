@@ -31,7 +31,7 @@ export async function textToGraph(options: GraphModelOptions, text: string, ctoM
     const chatCompletion = await openai.chat.completions.create({
         temperature: options.openAiOptions?.temperature ?? 0.05,
         model: options.openAiOptions?.model ?? OPENAI_MODEL,
-        messages: [getTextToGraphPrompt(ctoModel, text)],
+        messages: [getTextToGraphPrompt(options.textToGraphPrompt ? options.textToGraphPrompt : '', ctoModel, text)],
         response_format: { type: 'json_object' } // does not work??
     });
 

@@ -38,4 +38,4 @@ Creates tools to retrieve nodes via similarity search of vector indexed properti
 
 ## Source
 
-[types.ts:45](https://github.com/accordproject/lab-concerto-graph/blob/5f526300879649c63bb20f7c002e7b5dd5cd22c3/src/types.ts#L45)
+[types.ts:45](https://github.com/accordproject/lab-concerto-graph/blob/c86669a10a27298cd56667820f64e9064b866591/src/types.ts#L45)
