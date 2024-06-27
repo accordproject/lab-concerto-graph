@@ -1,4 +1,5 @@
 import { Conversation } from "./Conversation";
+import { TextToGraph } from "./TextToGraph";
 import { getOpenAiEmbedding } from "./functions";
 import { GraphModel } from "./graphmodel";
 import { ConsoleLogger } from './ConsoleLogger';
@@ -9,4 +10,5 @@ export {
     GraphModel,
     Conversation,
     ConsoleLogger,
+    TextToGraph
 }
