@@ -4,7 +4,7 @@ import { TextToGraphOptions, ToolMessage } from './types';
 
 /**
  * Converts natural language text to Graph Nodes and merges them
- * into the property graph.
+ * into the knowlege graph.
  */
 export class TextToGraph {
     conversation: Conversation;
@@ -25,7 +25,7 @@ export class TextToGraph {
     }
 
     /**
-     * Converts text to graph nodes and relationships and adds them to the property graph
+     * Converts text to graph nodes and relationships and adds them to the knowlege graph
      * @param text the text to extract nodes and relationships from
      * @returns an object that describes which nodes and relationships were added
      */

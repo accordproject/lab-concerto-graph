@@ -5,11 +5,11 @@ import { RunnableToolFunction } from "openai/lib/RunnableFunction";
 export function getTextToGraphPrompt(textToGraphPrompt:string, ctoModel:string, text:string) : ChatCompletionSystemMessageParam {
     return {
         role: 'system',
-        content: `You are an expert assistant that converts natural language text into a property graph.
+        content: `You are an expert assistant that converts natural language text into a knowlege graph.
 
 ${textToGraphPrompt}
 
-A property graph is composed of nodes, with relationships between the nodes. Nodes have a label and a set of properties.
+A knowledge graph is composed of nodes, with relationships between the nodes. Nodes have a label and a set of properties.
 The structure of the nodes and relationships that you output must conform to a schema defined by an Accord Project Concerto model. 
 Here is the Concerto model you must use:
 

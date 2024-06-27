@@ -855,7 +855,7 @@ export class GraphModel {
                     result.push({
                         type: "function",
                         function: {
-                            description: `Add a relationship ${relationship.getName()} from node ${node.getName()} to node ${relationship.getType()} to the property graph`,
+                            description: `Add a relationship ${relationship.getName()} from node ${node.getName()} to node ${relationship.getType()} to the knowledge graph`,
                             name: `merge_relationship_${node.getName().toLowerCase()}_${relationship.getName().toLowerCase()}`,
                             function: (async (args: { sourceType: string, sourceIdentfiier: string, targetType: string, targetIdentfiier: string, sourcePropertyName: string }) => {
                                 const context = await this.openSession();
@@ -901,7 +901,7 @@ export class GraphModel {
                 result.push({
                     type: "function",
                     function: {
-                        description: `Add a node ${node.getName()} to the property graph`,
+                        description: `Add a node ${node.getName()} to the knowledge graph`,
                         name: `merge_node_${node.getName().toLowerCase()}`,
                         function: (async (args: { identifier: string }) => {
                             const { identifier } = args;
