@@ -734,7 +734,7 @@ export class GraphModel {
     * @param graphNode the graphnode to convert to tool parameters
     * @returns a tool parameter object
     */
-    private getToolParameters(graphNode: ClassDeclaration): any {
+    private getToolParameters(graphNode: ClassDeclaration) {
         const vectorIndexes = this.getVectorIndexes(true);
         const notRelationships = graphNode.getProperties().filter(p => !(p as RelationshipDeclaration).isRelationship);
         const notVectorIndexed = notRelationships.filter(p => vectorIndexes.find(vi => vi.embeddingProperty === p.getName()) === undefined);
