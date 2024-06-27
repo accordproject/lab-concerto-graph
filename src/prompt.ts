@@ -75,12 +75,16 @@ Do not enclose the result in a markdown code block.
 `}
 }
 
-export const CONVERSATION_PROMPT = `Please use our database, which you can access using tools to answer the following questions. 
-Query the database using the 'chat_with_data' tool before trying other tools.`;
+export const CONVERSATION_PROMPT = `Please use our knowledge graph, which you can access using tools to answer the following questions. 
+Query the knowledge graph using the 'chat_with_data' tool before trying other tools.`;
+
+export const TEXT_TO_GRAPH_PROMPT = 'Please create nodes and relationships in our knowlege graph, which you can access using tools.';
 
 export const OPENAI_MODEL = 'gpt-4o';
 
 export const TOOL_GET_EMBEDDINGS_NAME = "get_embeddings";
+export const TOOL_CREATE_NODE_NAME = "create_graph_node";
+export const TOOL_CREATE_EDGE_NAME = "create_graph_edge";
 
 /**
  * This defines an OpenAI tool that can be used
@@ -88,7 +92,7 @@ export const TOOL_GET_EMBEDDINGS_NAME = "get_embeddings";
  * a string.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const OPENAI_TOOLS:Array<RunnableToolFunction<any>> = [
+export const TEXT_TO_CYPHER_TOOLS:Array<RunnableToolFunction<any>> = [
     {
         type: "function",
         function: {

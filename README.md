@@ -84,35 +84,42 @@ npm i @accordproject/concerto-graph@unstable --save
 ## Natural Language Text to Graph Nodes & Edges
 
 ```typescript
-    const textToGraph = `Kingdom of the Planet of the Apes
+        const text = `Kingdom of the Planet of the Apes
 
 Maze Runner director Wes Ball returns to the Planet of the Apes franchise, with a story set 300 years after the events of
 War for the Planet of the Apes. Pitched by Ball as Apocalypto but with apes and focusing more on action and adventure, 
 the story follows a new protagonist Noa (Owen Teague) as he tries to steer the apes away from the totalitarian future 
 they are headed towards. Freya Allan, Kevin Durand, Dichen Lachman, and William H. Macy star.`;
-    logger.log(`Text to graph: '${textToGraph}'`);
-    await graphModel.mergeTextToGraph(textToGraph);
+
+    const textToGraph = new TextToGraph(graphModel, {logger});
+    const results = await textToGraph.mergeText(text);
+    logger.success('added nodes and relationships to graph', results);  
 ```
 
 Output:
 
 ```bash
-Creating {"type":"node","label":"Movie","properties":{"identifier":"Kingdom of the Planet of the Apes","summary":"Maze Runner director Wes Ball returns to the Planet of the Apes franchise, with a story set 300 years after the events of War for the Planet of the Apes. Pitched by Ball as Apocalypto but with apes and focusing more on action and adventure, the story follows a new protagonist Noa (Owen Teague) as he tries to steer the apes away from the totalitarian future they are headed towards. Freya Allan, Kevin Durand, Dichen Lachman, and William H. Macy star."}}... []
-EmbeddingCacheNode cache miss []
-Created cache node 6174ef3f2803595fd0e0b2ab99b0a758c158458f5068668d1e7f5be50950e7c6 []
-Creating {"type":"node","label":"Director","properties":{"identifier":"Wes Ball"}}... []
-Creating {"type":"relationship","startNodeLabel":"Director","startNodeIdentifier":"Wes Ball","endNodeLabel":"Movie","endNodeIdentifier":"Kingdom of the Planet of the Apes","startNodePropertyName":"directed"}... []
-Creating {"type":"node","label":"Actor","properties":{"identifier":"Owen Teague"}}... []
-Creating {"type":"relationship","startNodeLabel":"Actor","startNodeIdentifier":"Owen Teague","endNodeLabel":"Movie","endNodeIdentifier":"Kingdom of the Planet of the Apes","startNodePropertyName":"actedIn"}... []
-Creating {"type":"node","label":"Actor","properties":{"identifier":"Freya Allan"}}... []
-Creating {"type":"relationship","startNodeLabel":"Actor","startNodeIdentifier":"Freya Allan","endNodeLabel":"Movie","endNodeIdentifier":"Kingdom of the Planet of the Apes","startNodePropertyName":"actedIn"}... []
-Creating {"type":"node","label":"Actor","properties":{"identifier":"Kevin Durand"}}... []
-Creating {"type":"relationship","startNodeLabel":"Actor","startNodeIdentifier":"Kevin Durand","endNodeLabel":"Movie","endNodeIdentifier":"Kingdom of the Planet of the Apes","startNodePropertyName":"actedIn"}... []
-Creating {"type":"node","label":"Actor","properties":{"identifier":"Dichen Lachman"}}... []
-Creating {"type":"relationship","startNodeLabel":"Actor","startNodeIdentifier":"Dichen Lachman","endNodeLabel":"Movie","endNodeIdentifier":"Kingdom of the Planet of the Apes","startNodePropertyName":"actedIn"}... []
-Creating {"type":"node","label":"Actor","properties":{"identifier":"William H. Macy"}}... []
-Creating {"type":"relationship","startNodeLabel":"Actor","startNodeIdentifier":"William H. Macy","endNodeLabel":"Movie","endNodeIdentifier":"Kingdom of the Planet of the Apes","startNodePropertyName":"actedIn"}... []
-Created 7 nodes and 6 edges. []
+added nodes and relationships to graph [
+  {
+    nodes: [
+      'created node Movie with identifier Kingdom of the Planet of the Apes',
+      'created node Director with identifier Wes Ball',
+      'created node Actor with identifier Owen Teague',
+      'created node Actor with identifier Freya Allan',
+      'created node Actor with identifier Kevin Durand',
+      'created node Actor with identifier Dichen Lachman',
+      'created node Actor with identifier William H. Macy'
+    ],
+    relationships: [
+      'created relationship directed between source node Wes Ball and target node Kingdom of the Planet of the Apes',
+      'created relationship actedIn between source node Owen Teague and target node Kingdom of the Planet of the Apes',
+      'created relationship actedIn between source node Freya Allan and target node Kingdom of the Planet of the Apes',
+      'created relationship actedIn between source node Kevin Durand and target node Kingdom of the Planet of the Apes',
+      'created relationship actedIn between source node Dichen Lachman and target node Kingdom of the Planet of the Apes',
+      'created relationship actedIn between source node William H. Macy and target node Kingdom of the Planet of the Apes'
+    ]
+  }
+]
 ```
 
 ## Fulltext Query

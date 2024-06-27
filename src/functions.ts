@@ -1,7 +1,23 @@
 import * as crypto from 'crypto'
 import OpenAI from "openai";
-import { EMBEDDINGS_MAGIC, GraphModelOptions, OpenAiOptions, PropertyBag, TextToGraphElement } from './types';
-import { OPENAI_MODEL, OPENAI_TOOLS, getTextToGraphPrompt, getTextToCypherPrompt } from './prompt';
+import { EMBEDDINGS_MAGIC, GraphModelOptions, OpenAiOptions, PropertyBag } from './types';
+import { OPENAI_MODEL, TEXT_TO_CYPHER_TOOLS, getTextToGraphPrompt, getTextToCypherPrompt } from './prompt';
+
+export function toOpenAiToolType(type:string) {
+    switch(type) {
+        case 'DateTime':
+        case 'String':
+            return 'string'
+        case 'Integer':
+        case 'Long':
+        case 'Double':
+            return 'number'
+        case 'Boolean':
+            return 'boolean'
+        default: 
+            return undefined // 'object';
+    }
+}
 
 /**
  * Computes the vector embeddings for a text string.
@@ -17,40 +33,6 @@ export async function getOpenAiEmbedding(options:OpenAiOptions|undefined, text: 
         encoding_format: "float",
     });
     return response.data[0].embedding;
-}
-
-/**
- * Converts a block of natural language to a set of graph nodes/edges
- * @param options configure logger and embedding function
- * @param text the input text to convert to Cypher
- * @param ctoModel the text of all CTO models, used to configure Cypher generation
- * @returns a promise to the Cypher query or null
- */
-export async function textToGraph(options: GraphModelOptions, text: string, ctoModel): Promise<Array<TextToGraphElement>> {
-    const openai = new OpenAI(options.openAiOptions?.clientOptions);
-    const chatCompletion = await openai.chat.completions.create({
-        temperature: options.openAiOptions?.temperature ?? 0.05,
-        model: options.openAiOptions?.model ?? OPENAI_MODEL,
-        messages: [getTextToGraphPrompt(options.textToGraphPrompt ? options.textToGraphPrompt : '', ctoModel, text)],
-        response_format: { type: 'json_object' } // does not work??
-    });
-
-    if(chatCompletion.choices.length > 0) {
-        const content = chatCompletion.choices[0].message.content;
-        if(content) {
-            try {
-                const obj = JSON.parse(content);
-                return obj.elements ? obj.elements : [];
-            }
-            catch {
-                options.logger?.error(`Failed to convert output to JSON ${content}`);
-            }
-        }
-    }
-    else {
-        options.logger?.error('No response from chat completion');
-    }
-    return [];
 }
 
 /**
@@ -71,7 +53,7 @@ export async function textToCypher(options: GraphModelOptions, text: string, cto
         // tool_choice: {type: 'function', function: {name: TOOL_GET_EMBEDDINGS_NAME}},
         model: options.openAiOptions?.model ?? OPENAI_MODEL,
         messages: [getTextToCypherPrompt(ctoModel, text)],
-        tools: OPENAI_TOOLS
+        tools: TEXT_TO_CYPHER_TOOLS
     })
     .on('functionCall', (functionCall) => {
         const args = JSON.parse(functionCall.arguments);

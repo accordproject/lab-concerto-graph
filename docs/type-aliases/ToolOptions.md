@@ -30,6 +30,12 @@ Creates tools to retrieve nodes via fulltext search of indexed properties
 
 Creates tools to retrieve nodes by id
 
+### mergeNodesAndRelatioships?
+
+> `optional` **mergeNodesAndRelatioships**: `boolean`
+
+Creates tools that merges nodes and relationship to the graph
+
 ### similaritySearch?
 
 > `optional` **similaritySearch**: `boolean`
@@ -38,4 +44,4 @@ Creates tools to retrieve nodes via similarity search of vector indexed properti
 
 ## Source
 
-[types.ts:45](https://github.com/accordproject/lab-concerto-graph/blob/c86669a10a27298cd56667820f64e9064b866591/src/types.ts#L45)
+[types.ts:28](https://github.com/accordproject/lab-concerto-graph/blob/f4094bbe0ab316e66d660c108a0dc8a69f47e2df/src/types.ts#L28)

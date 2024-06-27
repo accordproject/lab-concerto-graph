@@ -26,4 +26,4 @@ a promise to an array of numbers
 
 ## Source
 
-[functions.ts:12](https://github.com/accordproject/lab-concerto-graph/blob/c86669a10a27298cd56667820f64e9064b866591/src/functions.ts#L12)
+[functions.ts:28](https://github.com/accordproject/lab-concerto-graph/blob/f4094bbe0ab316e66d660c108a0dc8a69f47e2df/src/functions.ts#L28)

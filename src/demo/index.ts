@@ -1,5 +1,6 @@
 import { GraphModel, GraphModelOptions, getOpenAiEmbedding, ConsoleLogger } from '..'
 import { Conversation } from '../Conversation';
+import { TextToGraph } from '../TextToGraph';
 
 const NS = 'demo.graph@1.0.0';
 
@@ -139,15 +140,18 @@ async function run() {
     await graphModel.deleteNode(transaction, 'Person', 'test' );
   });
   {
-    const textToGraph = `Kingdom of the Planet of the Apes
+        const text = `Kingdom of the Planet of the Apes
 
 Maze Runner director Wes Ball returns to the Planet of the Apes franchise, with a story set 300 years after the events of
 War for the Planet of the Apes. Pitched by Ball as Apocalypto but with apes and focusing more on action and adventure, 
 the story follows a new protagonist Noa (Owen Teague) as he tries to steer the apes away from the totalitarian future 
 they are headed towards. Freya Allan, Kevin Durand, Dichen Lachman, and William H. Macy star.`;
-    logger.log(`Text to graph: '${textToGraph}'`);
-    await graphModel.mergeTextToGraph(textToGraph);
+
+    const textToGraph = new TextToGraph(graphModel, {logger});
+    const results = await textToGraph.mergeText(text);
+    logger.success('added nodes and relationships to graph', results);  
   }
+
   {
     const fullTextSearch = 'bats';
     logger.log(`Full text search for movies with: '${fullTextSearch}'`);

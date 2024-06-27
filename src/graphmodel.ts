@@ -1,8 +1,9 @@
-import { ClassDeclaration, Factory, Introspector, ModelManager, ModelUtil, Property, RelationshipDeclaration, Serializer } from "@accordproject/concerto-core";
+import { ClassDeclaration, Factory, Introspector, ModelManager, ModelUtil, Property, RelationshipDeclaration, Serializer } from '@accordproject/concerto-core';
+
 import neo4j, { DateTime, Driver, ManagedTransaction } from 'neo4j-driver';
 import { Context, EmbeddingCacheNode, FullTextIndex, GraphModelOptions, PropertyBag, SimilarityResult, ToolOptions, VectorIndex } from "./types";
 import { ROOT_MODEL, ROOT_NAMESPACE } from "./model";
-import { getTextChecksum, textToCypher, textToGraph } from "./functions";
+import { getTextChecksum, textToCypher, toOpenAiToolType } from "./functions";
 import { RunnableToolFunction } from "openai/lib/RunnableFunction";
 
 const MODELS_SEP = '----/----';
@@ -600,60 +601,6 @@ export class GraphModel {
     }
 
     /**
-     * Converts a natural language block to a set of graph nodes/edges
-     * @param text the input text
-     * @returns the graph nodes/edges
-     */
-    async textToGraph(text: string) {
-        return textToGraph(this.options, text, this.getConcertoModels());
-    }
-
-    /**
-    * Converts a natural language block to a set of graph nodes/edges and adds them to the graph.
-    * @param text the input text
-    */
-    async mergeTextToGraph(text: string) {
-        const context = await this.openSession();
-        const { session } = context;
-        let nodeCount = 0;
-        let edgeCount = 0;
-        const elements = await textToGraph(this.options, text, this.getConcertoModels());
-        if (elements) {
-            for (let n = 0; n < elements.length; n++) {
-                const element = elements[n];
-                this.options.logger?.info(`Creating ${JSON.stringify(element)}...`);
-                switch (element.type) {
-                    case 'node':
-                        try {
-                            await session.executeWrite(async transaction => {
-                                await this.mergeNode(transaction, element.label, element.properties ? element.properties : {});
-                                nodeCount++;
-                            });
-                        }
-                        catch (err) {
-                            this.options.logger?.error(`Failed to create node ${err}`);
-                        }
-                        break;
-                    case 'relationship':
-                        try {
-                            await session.executeWrite(async transaction => {
-                                await this.mergeRelationship(transaction, element.startNodeLabel, element.startNodeIdentifier,
-                                    element.endNodeLabel, element.endNodeIdentifier, element.startNodePropertyName);
-                                edgeCount++;
-                            });
-                        }
-                        catch (err) {
-                            this.options.logger?.error(`Failed to create edge ${err}`);
-                        }
-                        break;
-                }
-            }
-        }
-        this.options.logger?.info(`Created ${nodeCount} nodes and ${edgeCount} edges.`);
-        return this.closeSession(context);
-    }
-
-    /**
      * Converts the incoming natural language query to Cypher and then
      * runs the Cypher query.
      * @param text the input text
@@ -783,6 +730,42 @@ export class GraphModel {
     }
 
     /**
+    * Converts a GraphNode to its Open AI tool parameter representation
+    * @param graphNode the graphnode to convert to tool parameters
+    * @returns a tool parameter object
+    */
+    private getToolParameters(graphNode: ClassDeclaration): any {
+        const vectorIndexes = this.getVectorIndexes(true);
+        const notRelationships = graphNode.getProperties().filter(p => !(p as RelationshipDeclaration).isRelationship);
+        const notVectorIndexed = notRelationships.filter(p => vectorIndexes.find(vi => vi.embeddingProperty === p.getName()) === undefined);
+        // TODO DCS - this means that complex types must always be optional!
+        const notComplex = notVectorIndexed.filter( p => toOpenAiToolType(p.getType()));
+        const required = notComplex.filter(p => !p.isOptional()).map(p => p.getName());
+        const properties = {};
+        notComplex.forEach(p => {
+            const jsonSchemaType = toOpenAiToolType(p.getType());
+            if (jsonSchemaType)
+                properties[p.getName()] = {
+                    type: p.isArray() ? 'array' : jsonSchemaType
+                }
+            if (p.isArray()) {
+                properties[p.getName()].items = {
+                    type: jsonSchemaType
+                }
+            }
+        });
+
+        const result = {
+            type: "object",
+            properties,
+            required
+        }
+
+        console.log(JSON.stringify(result, null, 2));
+        return result;
+    }
+
+    /**
      * Creates OpenAI tools for the model
      * @returns an array of OpenAI tool definitions
      */
@@ -861,6 +844,87 @@ export class GraphModel {
                     }
                 }
             })
+        }
+
+        // merge nodes and relationships to graph
+        if (options.mergeNodesAndRelatioships) {
+            const nodes = this.getGraphNodeDeclarations(true);
+            for (let n = 0; n < nodes.length; n++) {
+                const node = nodes[n];
+                const relationships = node.getProperties().filter(p => (p as RelationshipDeclaration)?.isRelationship) as RelationshipDeclaration[];
+                for (let i = 0; i < relationships.length; i++) {
+                    const relationship = relationships[i];
+                    result.push({
+                        type: "function",
+                        function: {
+                            description: `Add a relationship ${relationship.getName()} from node ${node.getName()} to node ${relationship.getType()} to the property graph`,
+                            name: `merge_relationship_${node.getName().toLowerCase()}_${relationship.getName().toLowerCase()}`,
+                            function: (async (args: { sourceType: string, sourceIdentfiier: string, targetType: string, targetIdentfiier: string, sourcePropertyName: string }) => {
+                                const context = await this.openSession();
+                                const { session } = context;
+                                try {
+                                    await session.executeWrite(async transaction => {
+                                        await this.mergeRelationship(transaction, args.sourceType, args.sourceIdentfiier, args.targetType, args.targetIdentfiier, args.sourcePropertyName);
+                                        this.options.logger?.info(`merge_relationship_${node.getName().toLowerCase()}_${relationship.getName().toLowerCase()}`, result);
+                                    });
+                                    return `created relationship ${relationship.getName()} between source node ${args.sourceIdentfiier} and target node ${args.targetIdentfiier}`;
+                                }
+                                catch (err) {
+                                    return `An error occurred: ${err}`;
+                                }
+                            }),
+                            parse: JSON.parse,
+                            parameters: {
+                                "type": "object",
+                                "properties": {
+                                    "sourceType": {
+                                        "type": "string",
+                                    },
+                                    "sourceIdentfiier": {
+                                        "type": "string",
+                                    },
+                                    "targetType": {
+                                        "type": "string",
+                                    },
+                                    "targetIdentfiier": {
+                                        "type": "string",
+                                    },
+                                    "sourcePropertyName": {
+                                        "type": "string",
+                                    }
+                                },
+                                "required": ["sourceType", "sourceIdentfiier", "targetType", "targetIdentfiier", "sourcePropertyName"]
+                            }
+                        }
+                    })
+                }
+
+                const parameters = this.getToolParameters(node);
+                result.push({
+                    type: "function",
+                    function: {
+                        description: `Add a node ${node.getName()} to the property graph`,
+                        name: `merge_node_${node.getName().toLowerCase()}`,
+                        function: (async (args: { identifier: string }) => {
+                            const { identifier } = args;
+                            const context = await this.openSession();
+                            const { session } = context;
+                            try {
+                                await session.executeWrite(async transaction => {
+                                    await this.mergeNode(transaction, node.getName(), { identifier });
+                                    this.options.logger?.info(`add_${node.getName().toLowerCase()}`, result);
+                                });
+                                return `created node ${node.getName()} with identifier ${identifier}`;
+                            }
+                            catch (err) {
+                                return `An error occurred: ${err}`;
+                            }
+                        }),
+                        parse: JSON.parse,
+                        parameters
+                    }
+                })
+            }
         }
 
         // full text search

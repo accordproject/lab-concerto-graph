@@ -22,23 +22,6 @@ export type VectorIndex = {
     indexName: string;
 }
 
-export type TextToGraphNode = {
-    type: 'node',
-    label: string,
-    properties: PropertyBag,
-}
-
-export type TextToGraphRelationship = {
-    type: 'relationship',
-    startNodePropertyName: string,
-    startNodeLabel: string,
-    startNodeIdentifier: string,
-    endNodeLabel: string,
-    endNodeIdentifier: string,
-}
-
-export type TextToGraphElement = TextToGraphNode | TextToGraphRelationship;
-
 /**
  * Options for tool generation from the model
  */
@@ -59,6 +42,10 @@ export type ToolOptions = {
      * Creates tools to retrieve nodes via generation of Cypher from natural language
      */
     chatWithData?: boolean
+    /**
+     * Creates tools that merges nodes and relationship to the graph
+     */
+    mergeNodesAndRelatioships?: boolean
 }
 
 /**
@@ -107,6 +94,21 @@ export type ConversationOptions = {
      */
     maxContextSize?: number;
 
+    /**
+     * A logger to use for the Conversation
+     */
+    logger?: Logger;
+
+    /**
+     * Options to configure Open AI
+     */
+    openAiOptions?: OpenAiOptions
+}
+
+/**
+ * Options used when creating a TextToGraph
+ */
+export type TextToGraphOptions = {
     /**
      * A logger to use for the Conversation
      */
@@ -199,6 +201,11 @@ export type GraphModelOptions = {
      */
     openAiOptions?: OpenAiOptions
     textToGraphPrompt?: string;
+}
+
+export type ToolMessage = {
+    role: 'tool',
+    content: string
 }
 
 /**
