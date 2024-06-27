@@ -5,7 +5,7 @@ import { RunnableToolFunction } from "openai/lib/RunnableFunction";
 export function getTextToGraphPrompt(ctoModel:string, text:string) : ChatCompletionSystemMessageParam {
     return {
         role: 'system',
-        content: `You are an assistant that converts natural language text into a property graph. 
+        content: `You are an expert assistant that converts natural language text into a property graph. 
 
 A property graph is composed of nodes, with relationships between the nodes. Nodes have a label and a set of properties.
 The structure of the nodes and relationships that you output must conform to a schema defined by an Accord Project Concerto model. 
@@ -18,7 +18,7 @@ ${ctoModel}
 To create a node you output a JSON object of the form: {"type" : "node", "label" : "Person", "properties" : <PROPS>} where PROPS are the properties of the Person node.
 To create a relationship you output a JSON object of the form: {"type" : "relationship", "startNodeLabel" : "Actor", "startNodeIdentifier" : "Johnny Depp", "endNodeLabel": "Movie", "endNodeIdentifier" : "Fear and Loathing in Las Vegas", "startNodePropertyName" : "actedIn" }.
 
-Convert the following natural language to a JSON object with an elements property that is an array of nodes and relationships: """${text}
+Convert the following natural language to a JSON object with an 'elements' property that is an array of nodes and relationships: """${text}
 """
 `}
 }

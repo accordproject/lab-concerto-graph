@@ -189,7 +189,7 @@ export class GraphModel {
         const result = intro.getClassDeclarations()
             .filter(d => d.getAllSuperTypeDeclarations()
                 .find(s => s.getFullyQualifiedName() === `${ROOT_NAMESPACE}.GraphNode`));
-        return notools ? result.filter(decl => !decl.getDecorator('notool')) : result;
+        return notools ? result.filter(decl => !decl.isAbstract() && !decl.getDecorator('notool')) : result;
     }
 
     private getFullTextIndex(decl): FullTextIndex | undefined {
@@ -320,7 +320,7 @@ export class GraphModel {
         const graphNodes = this.getGraphNodeDeclarations(notools);
         for (let n = 0; n < graphNodes.length; n++) {
             const graphNode = graphNodes[n];
-            const vectorProperties = graphNode.getProperties().filter(p => p.getDecorator('vector_index'));
+            const vectorProperties = graphNode.getOwnProperties().filter(p => p.getDecorator('vector_index'));
             for (let i = 0; i < vectorProperties.length; i++) {
                 const vectorProperty = vectorProperties[i];
                 const vectorIndex = this.getPropertyVectorIndex(vectorProperty);

@@ -32,6 +32,8 @@ map AddressBook {
 }
 
 concept Person extends GraphNode {
+  @fulltext_index
+  o String description optional
   @label("ACTED_IN")
   --> Movie[] actedIn optional
   @label("DIRECTED")
