@@ -1,7 +1,7 @@
 import * as crypto from 'crypto'
 import OpenAI from "openai";
 import { EMBEDDINGS_MAGIC, GraphModelOptions, OpenAiOptions, PropertyBag } from './types';
-import { OPENAI_MODEL, TEXT_TO_CYPHER_TOOLS, getTextToGraphPrompt, getTextToCypherPrompt } from './prompt';
+import { OPENAI_MODEL, TEXT_TO_CYPHER_TOOLS, getTextToCypherPrompt } from './prompt';
 
 export function toOpenAiToolType(type:string) {
     switch(type) {
