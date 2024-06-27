@@ -1,5 +1,6 @@
 import { Conversation } from "./Conversation";
 import { GraphModel } from "./graphmodel";
+import { TEXT_TO_GRAPH_PROMPT } from "./prompt";
 import { TextToGraphOptions, ToolMessage } from './types';
 
 /**
@@ -8,6 +9,7 @@ import { TextToGraphOptions, ToolMessage } from './types';
  */
 export class TextToGraph {
     conversation: Conversation;
+    options: TextToGraphOptions;
 
     /**
      * Creates a new TextToGraph
@@ -15,6 +17,7 @@ export class TextToGraph {
      * @param options the options for the text to graph conversion
      */
     constructor(graphModel: GraphModel, options: TextToGraphOptions) {
+        this.options = options;
         this.conversation = new Conversation(graphModel, {
             toolOptions: {
                 mergeNodesAndRelatioships: true
@@ -30,7 +33,8 @@ export class TextToGraph {
      * @returns an object that describes which nodes and relationships were added
      */
     async mergeText(text: string) {
-        const messages:Array<ToolMessage> = await this.conversation.runMessages([this.conversation.getSystemMessage(true)], `Add the nodes in this text to the knowledge graph: ${text}`);
+        const prompt = this.options.textToGraphPrompt ? this.options.textToGraphPrompt : TEXT_TO_GRAPH_PROMPT;
+        const messages:Array<ToolMessage> = await this.conversation.runMessages([this.conversation.getSystemMessage(prompt)], `Add the nodes in this text to the knowledge graph: ${text}`);
         const relationships:Array<string> = [];
         const nodes:Array<string> = [];
         for(let n=0; n < messages.length; n++) {

@@ -117,7 +117,12 @@ export type TextToGraphOptions = {
     /**
      * Options to configure Open AI
      */
-    openAiOptions?: OpenAiOptions
+    openAiOptions?: OpenAiOptions;
+
+    /**
+     * An optional prompt to further guide conversion of text to graph
+     */
+    textToGraphPrompt?: string
 }
 
 /**

@@ -48,4 +48,4 @@ Options to configure Open AI
 
 ## Source
 
-[types.ts:192](https://github.com/accordproject/lab-concerto-graph/blob/f4094bbe0ab316e66d660c108a0dc8a69f47e2df/src/types.ts#L192)
+[types.ts:197](https://github.com/accordproject/lab-concerto-graph/blob/87c81018347fa08584f3cb9907a3e77815e8c62a/src/types.ts#L197)

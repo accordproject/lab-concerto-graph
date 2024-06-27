@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { RunnableToolFunction } from "openai/lib/RunnableFunction";
-import { CONVERSATION_PROMPT, OPENAI_MODEL, TEXT_TO_GRAPH_PROMPT } from "./prompt";
+import { CONVERSATION_PROMPT, OPENAI_MODEL } from "./prompt";
 import { GraphModel } from "./graphmodel";
 import { ConversationOptions } from './types';
 import { GPTTokens } from 'gpt-tokens';
@@ -65,10 +65,10 @@ export class Conversation {
      * The system message
      * @returns the system message for the conversation
      */
-    getSystemMessage(textToGraph?:boolean) {
+    getSystemMessage(prompt?:string) {
         return {
             role: 'system',
-            content: textToGraph ? TEXT_TO_GRAPH_PROMPT : CONVERSATION_PROMPT,
+            content: prompt ? prompt : CONVERSATION_PROMPT,
         };
     }
 

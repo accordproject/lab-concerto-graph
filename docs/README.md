@@ -8,6 +8,7 @@
 
 - [Conversation](classes/Conversation.md)
 - [GraphModel](classes/GraphModel.md)
+- [TextToGraph](classes/TextToGraph.md)
 
 ## Type Aliases
 
