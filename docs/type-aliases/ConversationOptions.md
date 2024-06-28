@@ -46,4 +46,4 @@ Which tools to register on the conversation
 
 ## Source
 
-[types.ts:84](https://github.com/accordproject/lab-concerto-graph/blob/7906621d6d0601d49217ffdd5ad64cfc20af0507/src/types.ts#L84)
+[types.ts:88](https://github.com/accordproject/lab-concerto-graph/blob/91648e75986670e16261bbc19c4f75e2a4f3c3b8/src/types.ts#L88)

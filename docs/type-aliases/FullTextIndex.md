@@ -26,4 +26,4 @@ Definition of a full text index over some properties
 
 ## Source
 
-[types.ts:135](https://github.com/accordproject/lab-concerto-graph/blob/7906621d6d0601d49217ffdd5ad64cfc20af0507/src/types.ts#L135)
+[types.ts:139](https://github.com/accordproject/lab-concerto-graph/blob/91648e75986670e16261bbc19c4f75e2a4f3c3b8/src/types.ts#L139)

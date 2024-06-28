@@ -200,7 +200,8 @@ they are headed towards. Freya Allan, Kevin Durand, Dichen Lachman, and William 
           getById: true,
           chatWithData: true,
           fullTextSearch: true,
-          similaritySearch: true
+          similaritySearch: true,
+          currentDateTime: true,
         },
         maxContextSize: 64000,
         logger
@@ -223,7 +224,8 @@ they are headed towards. Freya Allan, Kevin Durand, Dichen Lachman, and William 
           getById: true,
           chatWithData: true,
           fullTextSearch: true,
-          similaritySearch: true
+          similaritySearch: true,
+          currentDateTime: true,
         },
         maxContextSize: 64000,
         logger

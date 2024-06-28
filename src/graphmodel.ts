@@ -771,6 +771,25 @@ export class GraphModel {
     getTools(options: ToolOptions): Array<RunnableToolFunction<any>> {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result: Array<RunnableToolFunction<any>> = [];
+        if(options.currentDateTime) {
+            result.push({
+                type: "function",
+                function: {
+                    description: 'Get current date and time',
+                    name: 'get_current_datetime',
+                    function: (async () => {
+                        return new Date().toISOString();
+                    }),
+                    parse: JSON.parse,
+                    parameters: {
+                        "type": "object",
+                        "properties": {},
+                        "required": []
+                    }
+                }
+            })
+        }
+
         if (options.getById) {
             const nodes = this.getGraphNodeDeclarations(true);
             for (let n = 0; n < nodes.length; n++) {

@@ -46,6 +46,10 @@ export type ToolOptions = {
      * Creates tools that merges nodes and relationship to the graph
      */
     mergeNodesAndRelatioships?: boolean
+    /**
+     * Creates a tool for current date and time
+     */
+    currentDateTime?: boolean
 }
 
 /**
