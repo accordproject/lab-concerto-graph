@@ -88,7 +88,7 @@ async function run() {
   // await graphModel.loadConcertoModels(); // loads models from graph
   const context = await graphModel.openSession();
 
-  // const tools = graphModel.getTools({chatWithData: true, fullTextSearch: true, getById: true, similaritySearch: true});
+  // const tools = graphModel.getTools({currentDateTime: true});
   // console.log(JSON.stringify(tools, null , 2));
 
   const { session } = context;

@@ -811,7 +811,7 @@ export class GraphModel {
                                     })
                                     return result;
                                 }) : [];
-                                this.options.logger?.info(`get_${node.getName().toLowerCase()}_by_id`, result);
+                                this.options.logger?.info(`get_${node.getName().toLowerCase()}_by_id`, ret);
                                 return ret;
                             }
                             catch (err) {
@@ -882,9 +882,10 @@ export class GraphModel {
                                 try {
                                     await session.executeWrite(async transaction => {
                                         await this.mergeRelationship(transaction, args.sourceType, args.sourceIdentfiier, args.targetType, args.targetIdentfiier, args.sourcePropertyName);
-                                        this.options.logger?.info(`merge_relationship_${node.getName().toLowerCase()}_${relationship.getName().toLowerCase()}`, result);
                                     });
-                                    return `created relationship ${relationship.getName()} between source node ${args.sourceIdentfiier} and target node ${args.targetIdentfiier}`;
+                                    const ret = `created relationship ${relationship.getName()} between source node ${args.sourceIdentfiier} and target node ${args.targetIdentfiier}`;
+                                    this.options.logger?.info(ret);
+                                    return ret;
                                 }
                                 catch (err) {
                                     return `An error occurred: ${err}`;
@@ -913,7 +914,7 @@ export class GraphModel {
                                 "required": ["sourceType", "sourceIdentfiier", "targetType", "targetIdentfiier", "sourcePropertyName"]
                             }
                         }
-                    })
+                    });
                 }
 
                 const parameters = this.getToolParameters(node);
@@ -929,9 +930,10 @@ export class GraphModel {
                             try {
                                 await session.executeWrite(async transaction => {
                                     await this.mergeNode(transaction, node.getName(), { identifier });
-                                    this.options.logger?.info(`add_${node.getName().toLowerCase()}`, result);
                                 });
-                                return `created node ${node.getName()} with identifier ${identifier}`;
+                                const ret = `created node ${node.getName()} with identifier ${identifier}`;
+                                this.options.logger?.info(ret);
+                                return ret;
                             }
                             catch (err) {
                                 return `An error occurred: ${err}`;
