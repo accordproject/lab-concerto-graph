@@ -29,24 +29,24 @@ Creates a new Conversation
 
 #### Source
 
-[Conversation.ts:26](https://github.com/accordproject/lab-concerto-graph/blob/91648e75986670e16261bbc19c4f75e2a4f3c3b8/src/Conversation.ts#L26)
+[Conversation.ts:28](https://github.com/accordproject/lab-concerto-graph/blob/b34f37b25907f3157285eb8fb2d96d925936f651/src/Conversation.ts#L28)
 
 ## Properties
 
 | Property | Type |
 | :------ | :------ |
-| `client` | `any` |
+| `client` | `OpenAI` |
 | `graphModel` | [`GraphModel`](GraphModel.md) |
 | `messages` | `any` |
 | `options` | [`ConversationOptions`](../type-aliases/ConversationOptions.md) |
-| `runner` | `any` |
+| `runner` | `null` \| `ChatCompletionRunner` |
 | `tools` | `RunnableToolFunction`\<`any`\>[] |
 
 ## Methods
 
 ### appendUserMessage()
 
-> **appendUserMessage**(`content`): `Promise`\<`any`\>
+> **appendUserMessage**(`content`): `Promise`\<`null` \| `string`\>
 
 Adds a user message to a conversation that uses the
 graph model as a tool(s)
@@ -59,39 +59,31 @@ graph model as a tool(s)
 
 #### Returns
 
-`Promise`\<`any`\>
+`Promise`\<`null` \| `string`\>
 
 the final result message
 
 #### Source
 
-[Conversation.ts:81](https://github.com/accordproject/lab-concerto-graph/blob/91648e75986670e16261bbc19c4f75e2a4f3c3b8/src/Conversation.ts#L81)
+[Conversation.ts:83](https://github.com/accordproject/lab-concerto-graph/blob/b34f37b25907f3157285eb8fb2d96d925936f651/src/Conversation.ts#L83)
 
 ***
 
 ### getSystemMessage()
 
-> **getSystemMessage**(): `object`
+> **getSystemMessage**(): `ChatCompletionSystemMessageParam`
 
 The system message
 
 #### Returns
 
-`object`
+`ChatCompletionSystemMessageParam`
 
 the system message for the conversation
 
-##### content
-
-> **content**: `string`
-
-##### role
-
-> **role**: `string` = `'system'`
-
 #### Source
 
-[Conversation.ts:68](https://github.com/accordproject/lab-concerto-graph/blob/91648e75986670e16261bbc19c4f75e2a4f3c3b8/src/Conversation.ts#L68)
+[Conversation.ts:70](https://github.com/accordproject/lab-concerto-graph/blob/b34f37b25907f3157285eb8fb2d96d925936f651/src/Conversation.ts#L70)
 
 ***
 
@@ -110,13 +102,13 @@ or undefined if a user message has not been added
 
 #### Source
 
-[Conversation.ts:111](https://github.com/accordproject/lab-concerto-graph/blob/91648e75986670e16261bbc19c4f75e2a4f3c3b8/src/Conversation.ts#L111)
+[Conversation.ts:113](https://github.com/accordproject/lab-concerto-graph/blob/b34f37b25907f3157285eb8fb2d96d925936f651/src/Conversation.ts#L113)
 
 ***
 
 ### runMessages()
 
-> **runMessages**(`messages`, `content`): `Promise`\<`any`\>
+> **runMessages**(`messages`, `content`): `Promise`\<`ChatCompletionMessageParam`[]\>
 
 Reinitializes the messages, adds a user messages and runs
 to completion. Used for stateless execution.
@@ -130,10 +122,10 @@ to completion. Used for stateless execution.
 
 #### Returns
 
-`Promise`\<`any`\>
+`Promise`\<`ChatCompletionMessageParam`[]\>
 
 all the messages
 
 #### Source
 
-[Conversation.ts:41](https://github.com/accordproject/lab-concerto-graph/blob/91648e75986670e16261bbc19c4f75e2a4f3c3b8/src/Conversation.ts#L41)
+[Conversation.ts:43](https://github.com/accordproject/lab-concerto-graph/blob/b34f37b25907f3157285eb8fb2d96d925936f651/src/Conversation.ts#L43)

@@ -1,7 +1,7 @@
 import { Conversation } from "./Conversation";
 import { GraphModel } from "./graphmodel";
 import { TEXT_TO_GRAPH_PROMPT } from "./prompt";
-import { TextToGraphOptions, ToolMessage } from './types';
+import { TextToGraphOptions } from './types';
 
 /**
  * Converts natural language text to Graph Nodes and merges them
@@ -34,12 +34,12 @@ export class TextToGraph {
      * @returns an object that describes which nodes and relationships were added
      */
     async mergeText(text: string) {
-        const messages:Array<ToolMessage> = await this.conversation.runMessages([this.conversation.getSystemMessage()], `Add the nodes in this text to the knowledge graph: ${text}`);
+        const messages = await this.conversation.runMessages([this.conversation.getSystemMessage()], `Add the nodes in this text to the knowledge graph: ${text}`);
         const relationships:Array<string> = [];
         const nodes:Array<string> = [];
         for(let n=0; n < messages.length; n++) {
             const msg = messages[n];
-            if(msg.role === 'tool') {
+            if(msg.role === 'tool' && msg.content) {
                 if(msg.content.startsWith('created relationship')) {
                     relationships.push(msg.content);
                 }

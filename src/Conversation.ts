@@ -4,6 +4,8 @@ import { CONVERSATION_PROMPT, OPENAI_MODEL } from "./prompt";
 import { GraphModel } from "./graphmodel";
 import { ConversationOptions } from './types';
 import { GPTTokens } from 'gpt-tokens';
+import { ChatCompletionRunner } from 'openai/lib/ChatCompletionRunner';
+import { ChatCompletionSystemMessageParam } from 'openai/resources';
 
 /**
  * An LLM conversation about a GraphModel
@@ -14,8 +16,8 @@ export class Conversation {
     tools: Array<RunnableToolFunction<any>>;
 
     messages;
-    client;
-    runner;
+    client:OpenAI;
+    runner:ChatCompletionRunner|null;
     options: ConversationOptions;
 
     /**
@@ -65,7 +67,7 @@ export class Conversation {
      * The system message
      * @returns the system message for the conversation
      */
-    getSystemMessage() {
+    getSystemMessage() : ChatCompletionSystemMessageParam {
         return {
             role: 'system',
             content: this.options.systemPrompt ? this.options.systemPrompt : CONVERSATION_PROMPT,
@@ -112,7 +114,7 @@ export class Conversation {
         if (this.runner && this.runner.messages && this.runner.messages.length > 1) {
             return new GPTTokens({
                 model: this.options.openAiOptions?.model ?? OPENAI_MODEL,
-                messages: this.runner.messages,
+                messages: this.runner.messages as any,
             })
         }
     }
