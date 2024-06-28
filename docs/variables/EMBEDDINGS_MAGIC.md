@@ -14,4 +14,4 @@ that include semantic embeddings
 
 ## Source
 
-[types.ts:11](https://github.com/accordproject/lab-concerto-graph/blob/b34f37b25907f3157285eb8fb2d96d925936f651/src/types.ts#L11)
+[types.ts:11](https://github.com/accordproject/lab-concerto-graph/blob/5d30e3cf29c8b84c4d23ee33ec8546f97f22bfdd/src/types.ts#L11)

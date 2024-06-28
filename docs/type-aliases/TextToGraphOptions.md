@@ -18,6 +18,14 @@ Options used when creating a TextToGraph
 
 A logger to use for the Conversation
 
+### maxContextSize?
+
+> `optional` **maxContextSize**: `number`
+
+The maximum context size for the conversation. Old messages
+will be automatically removed once the context size limit is
+reached
+
 ### openAiOptions?
 
 > `optional` **openAiOptions**: [`OpenAiOptions`](OpenAiOptions.md)
@@ -32,4 +40,4 @@ An optional prompt to further guide conversion of text to graph
 
 ## Source
 
-[types.ts:119](https://github.com/accordproject/lab-concerto-graph/blob/b34f37b25907f3157285eb8fb2d96d925936f651/src/types.ts#L119)
+[types.ts:119](https://github.com/accordproject/lab-concerto-graph/blob/5d30e3cf29c8b84c4d23ee33ec8546f97f22bfdd/src/types.ts#L119)
