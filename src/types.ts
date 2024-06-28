@@ -103,6 +103,10 @@ export type ConversationOptions = {
      * Options to configure Open AI
      */
     openAiOptions?: OpenAiOptions
+    /**
+     * System prompt
+     */
+    systemPrompt?: string;
 }
 
 /**

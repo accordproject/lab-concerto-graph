@@ -29,7 +29,7 @@ Creates a new Conversation
 
 #### Source
 
-[Conversation.ts:26](https://github.com/accordproject/lab-concerto-graph/blob/87c81018347fa08584f3cb9907a3e77815e8c62a/src/Conversation.ts#L26)
+[Conversation.ts:26](https://github.com/accordproject/lab-concerto-graph/blob/7906621d6d0601d49217ffdd5ad64cfc20af0507/src/Conversation.ts#L26)
 
 ## Properties
 
@@ -65,21 +65,15 @@ the final result message
 
 #### Source
 
-[Conversation.ts:81](https://github.com/accordproject/lab-concerto-graph/blob/87c81018347fa08584f3cb9907a3e77815e8c62a/src/Conversation.ts#L81)
+[Conversation.ts:81](https://github.com/accordproject/lab-concerto-graph/blob/7906621d6d0601d49217ffdd5ad64cfc20af0507/src/Conversation.ts#L81)
 
 ***
 
 ### getSystemMessage()
 
-> **getSystemMessage**(`prompt`?): `object`
+> **getSystemMessage**(): `object`
 
 The system message
-
-#### Parameters
-
-| Parameter | Type |
-| :------ | :------ |
-| `prompt`? | `string` |
 
 #### Returns
 
@@ -97,7 +91,7 @@ the system message for the conversation
 
 #### Source
 
-[Conversation.ts:68](https://github.com/accordproject/lab-concerto-graph/blob/87c81018347fa08584f3cb9907a3e77815e8c62a/src/Conversation.ts#L68)
+[Conversation.ts:68](https://github.com/accordproject/lab-concerto-graph/blob/7906621d6d0601d49217ffdd5ad64cfc20af0507/src/Conversation.ts#L68)
 
 ***
 
@@ -116,7 +110,7 @@ or undefined if a user message has not been added
 
 #### Source
 
-[Conversation.ts:111](https://github.com/accordproject/lab-concerto-graph/blob/87c81018347fa08584f3cb9907a3e77815e8c62a/src/Conversation.ts#L111)
+[Conversation.ts:111](https://github.com/accordproject/lab-concerto-graph/blob/7906621d6d0601d49217ffdd5ad64cfc20af0507/src/Conversation.ts#L111)
 
 ***
 
@@ -142,4 +136,4 @@ all the messages
 
 #### Source
 
-[Conversation.ts:41](https://github.com/accordproject/lab-concerto-graph/blob/87c81018347fa08584f3cb9907a3e77815e8c62a/src/Conversation.ts#L41)
+[Conversation.ts:41](https://github.com/accordproject/lab-concerto-graph/blob/7906621d6d0601d49217ffdd5ad64cfc20af0507/src/Conversation.ts#L41)

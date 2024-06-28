@@ -65,10 +65,10 @@ export class Conversation {
      * The system message
      * @returns the system message for the conversation
      */
-    getSystemMessage(prompt?:string) {
+    getSystemMessage() {
         return {
             role: 'system',
-            content: prompt ? prompt : CONVERSATION_PROMPT,
+            content: this.options.systemPrompt ? this.options.systemPrompt : CONVERSATION_PROMPT,
         };
     }
 

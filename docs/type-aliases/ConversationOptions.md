@@ -32,6 +32,12 @@ reached
 
 Options to configure Open AI
 
+### systemPrompt?
+
+> `optional` **systemPrompt**: `string`
+
+System prompt
+
 ### toolOptions
 
 > **toolOptions**: [`ToolOptions`](ToolOptions.md)
@@ -40,4 +46,4 @@ Which tools to register on the conversation
 
 ## Source
 
-[types.ts:84](https://github.com/accordproject/lab-concerto-graph/blob/87c81018347fa08584f3cb9907a3e77815e8c62a/src/types.ts#L84)
+[types.ts:84](https://github.com/accordproject/lab-concerto-graph/blob/7906621d6d0601d49217ffdd5ad64cfc20af0507/src/types.ts#L84)

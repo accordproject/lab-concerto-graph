@@ -2,29 +2,6 @@ import { ChatCompletionSystemMessageParam } from "openai/resources";
 import { EMBEDDINGS_MAGIC } from "./types";
 import { RunnableToolFunction } from "openai/lib/RunnableFunction";
 
-export function getTextToGraphPrompt(textToGraphPrompt:string, ctoModel:string, text:string) : ChatCompletionSystemMessageParam {
-    return {
-        role: 'system',
-        content: `You are an expert assistant that converts natural language text into a knowlege graph.
-
-${textToGraphPrompt}
-
-A knowledge graph is composed of nodes, with relationships between the nodes. Nodes have a label and a set of properties.
-The structure of the nodes and relationships that you output must conform to a schema defined by an Accord Project Concerto model. 
-Here is the Concerto model you must use:
-
-\`\`\`
-${ctoModel}
-\`\`\`
-
-To create a node you output a JSON object of the form: {"type" : "node", "label" : "Person", "properties" : <PROPS>} where PROPS are the properties of the Person node.
-To create a relationship you output a JSON object of the form: {"type" : "relationship", "startNodeLabel" : "Actor", "startNodeIdentifier" : "Johnny Depp", "endNodeLabel": "Movie", "endNodeIdentifier" : "Fear and Loathing in Las Vegas", "startNodePropertyName" : "actedIn" }.
-
-Convert the following natural language to a JSON object with an 'elements' property that is an array of nodes and relationships: """${text}
-"""
-`}
-}
-
 export function getTextToCypherPrompt(ctoModel:string, text:string) : ChatCompletionSystemMessageParam {
     return {
         role: 'system',
@@ -83,8 +60,6 @@ export const TEXT_TO_GRAPH_PROMPT = 'Please create nodes and relationships in ou
 export const OPENAI_MODEL = 'gpt-4o';
 
 export const TOOL_GET_EMBEDDINGS_NAME = "get_embeddings";
-export const TOOL_CREATE_NODE_NAME = "create_graph_node";
-export const TOOL_CREATE_EDGE_NAME = "create_graph_edge";
 
 /**
  * This defines an OpenAI tool that can be used

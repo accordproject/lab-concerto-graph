@@ -89,4 +89,4 @@ Function signature for a logger
 
 ## Source
 
-[types.ts:181](https://github.com/accordproject/lab-concerto-graph/blob/87c81018347fa08584f3cb9907a3e77815e8c62a/src/types.ts#L181)
+[types.ts:185](https://github.com/accordproject/lab-concerto-graph/blob/7906621d6d0601d49217ffdd5ad64cfc20af0507/src/types.ts#L185)

@@ -23,7 +23,8 @@ export class TextToGraph {
                 mergeNodesAndRelatioships: true
             },
             logger: options.logger,
-            openAiOptions: options.openAiOptions
+            openAiOptions: options.openAiOptions,
+            systemPrompt: options.textToGraphPrompt,
         });
     }
 
@@ -33,8 +34,7 @@ export class TextToGraph {
      * @returns an object that describes which nodes and relationships were added
      */
     async mergeText(text: string) {
-        const prompt = this.options.textToGraphPrompt ? this.options.textToGraphPrompt : TEXT_TO_GRAPH_PROMPT;
-        const messages:Array<ToolMessage> = await this.conversation.runMessages([this.conversation.getSystemMessage(prompt)], `Add the nodes in this text to the knowledge graph: ${text}`);
+        const messages:Array<ToolMessage> = await this.conversation.runMessages([this.conversation.getSystemMessage()], `Add the nodes in this text to the knowledge graph: ${text}`);
         const relationships:Array<string> = [];
         const nodes:Array<string> = [];
         for(let n=0; n < messages.length; n++) {
