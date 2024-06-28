@@ -131,6 +131,13 @@ export type TextToGraphOptions = {
      * An optional prompt to further guide conversion of text to graph
      */
     textToGraphPrompt?: string
+    
+    /**
+     * The maximum context size for the conversation. Old messages
+     * will be automatically removed once the context size limit is
+     * reached
+     */
+    maxContextSize?: number;
 }
 
 /**

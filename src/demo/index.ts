@@ -147,7 +147,7 @@ War for the Planet of the Apes. Pitched by Ball as Apocalypto but with apes and 
 the story follows a new protagonist Noa (Owen Teague) as he tries to steer the apes away from the totalitarian future 
 they are headed towards. Freya Allan, Kevin Durand, Dichen Lachman, and William H. Macy star.`;
 
-    const textToGraph = new TextToGraph(graphModel, {logger});
+    const textToGraph = new TextToGraph(graphModel, {logger, maxContextSize: 64000});
     const results = await textToGraph.mergeText(text);
     logger.success('added nodes and relationships to graph', results);  
   }

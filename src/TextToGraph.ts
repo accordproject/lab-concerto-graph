@@ -25,6 +25,7 @@ export class TextToGraph {
             logger: options.logger,
             openAiOptions: options.openAiOptions,
             systemPrompt: options.textToGraphPrompt ? options.textToGraphPrompt : TEXT_TO_GRAPH_PROMPT,
+            maxContextSize: options.maxContextSize
         });
     }
 
@@ -34,7 +35,7 @@ export class TextToGraph {
      * @returns an object that describes which nodes and relationships were added
      */
     async mergeText(text: string) {
-        const messages = await this.conversation.runMessages([this.conversation.getSystemMessage()], `Add the nodes in this text to the knowledge graph: ${text}`);
+        const messages = await this.conversation.runMessages([this.conversation.getSystemMessage()], text);
         const relationships:Array<string> = [];
         const nodes:Array<string> = [];
         for(let n=0; n < messages.length; n++) {
