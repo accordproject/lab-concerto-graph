@@ -20,7 +20,7 @@ export class TextToGraph {
         this.options = options;
         this.conversation = new Conversation(graphModel, {
             toolOptions: {
-                mergeNodesAndRelatioships: true
+                mergeNodesAndRelatioships: true,
             },
             logger: options.logger,
             openAiOptions: options.openAiOptions,

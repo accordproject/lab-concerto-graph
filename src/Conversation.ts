@@ -114,6 +114,7 @@ export class Conversation {
         if (this.runner && this.runner.messages && this.runner.messages.length > 1) {
             return new GPTTokens({
                 model: this.options.openAiOptions?.model ?? OPENAI_MODEL,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 messages: this.runner.messages as any,
             })
         }
