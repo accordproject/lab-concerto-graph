@@ -24,7 +24,7 @@ export class TextToGraph {
             },
             logger: options.logger,
             openAiOptions: options.openAiOptions,
-            systemPrompt: options.textToGraphPrompt,
+            systemPrompt: options.textToGraphPrompt ? options.textToGraphPrompt : TEXT_TO_GRAPH_PROMPT,
         });
     }
 
