@@ -24,4 +24,4 @@ vector embeddings for text
 
 ## Source
 
-[types.ts:191](https://github.com/accordproject/lab-concerto-graph/blob/5d30e3cf29c8b84c4d23ee33ec8546f97f22bfdd/src/types.ts#L191)
+[types.ts:191](https://github.com/accordproject/lab-concerto-graph/blob/9e94edc926719638323f93597ac11c7873b63663/src/types.ts#L191)

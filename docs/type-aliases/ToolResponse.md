@@ -26,4 +26,4 @@ The string that we should compute embedding vectors for
 
 ## Source
 
-[types.ts:234](https://github.com/accordproject/lab-concerto-graph/blob/5d30e3cf29c8b84c4d23ee33ec8546f97f22bfdd/src/types.ts#L234)
+[types.ts:234](https://github.com/accordproject/lab-concerto-graph/blob/9e94edc926719638323f93597ac11c7873b63663/src/types.ts#L234)

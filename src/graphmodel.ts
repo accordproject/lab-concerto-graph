@@ -864,7 +864,7 @@ export class GraphModel {
         }
 
         // merge nodes and relationships to graph
-        if (options.mergeNodesAndRelatioships) {
+        if (options.mergeNodesAndRelationships) {
             const nodes = this.getGraphNodeDeclarations(true);
             for (let n = 0; n < nodes.length; n++) {
                 const node = nodes[n];

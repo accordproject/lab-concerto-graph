@@ -30,7 +30,7 @@ Creates a new TextToGraph
 
 #### Source
 
-[TextToGraph.ts:19](https://github.com/accordproject/lab-concerto-graph/blob/5d30e3cf29c8b84c4d23ee33ec8546f97f22bfdd/src/TextToGraph.ts#L19)
+[TextToGraph.ts:19](https://github.com/accordproject/lab-concerto-graph/blob/9e94edc926719638323f93597ac11c7873b63663/src/TextToGraph.ts#L19)
 
 ## Properties
 
@@ -69,4 +69,4 @@ an object that describes which nodes and relationships were added
 
 #### Source
 
-[TextToGraph.ts:37](https://github.com/accordproject/lab-concerto-graph/blob/5d30e3cf29c8b84c4d23ee33ec8546f97f22bfdd/src/TextToGraph.ts#L37)
+[TextToGraph.ts:37](https://github.com/accordproject/lab-concerto-graph/blob/9e94edc926719638323f93597ac11c7873b63663/src/TextToGraph.ts#L37)

@@ -105,7 +105,7 @@ Do not enclose the result in a markdown code block.
 export const CONVERSATION_PROMPT = `Please use our knowledge graph, which you can access using tools to answer the following questions. 
 Query the knowledge graph using the 'chat_with_data' tool before trying other tools.`;
 
-export const TEXT_TO_GRAPH_PROMPT = 'Please create nodes and relationships in our knowlege graph, which you can access using tools.';
+export const TEXT_TO_GRAPH_PROMPT = 'Please create nodes and relationships in our knowledge graph, which you can access using tools.';
 
 export const OPENAI_MODEL = 'gpt-4o';
 
