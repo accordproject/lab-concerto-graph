@@ -117,11 +117,15 @@ export class GraphModel {
     async mergeConcertoModels() {
         const context = await this.openSession();
         const { session } = context;
-        await session.executeWrite(async transaction => {
-            await this.mergeNode(transaction, 'org.accordproject.graph@1.0.0.ConcertoModels', { identifier: '000', content: this.getConcertoModels() });
-        });
-        this.options.logger?.info('Stored Concerto Models');
-        return this.closeSession(context);
+        try {
+            await session.executeWrite(async transaction => {
+                return this.mergeNode(transaction, 'org.accordproject.graph@1.0.0.ConcertoModels', { identifier: '000', content: this.getConcertoModels() });
+            });
+            this.options.logger?.info('Stored Concerto Models');
+        }
+        finally {
+            return this.closeSession(context);
+        }
     }
 
     /**
@@ -131,16 +135,20 @@ export class GraphModel {
      */
     async queryConcertoModels(): Promise<Array<string> | undefined> {
         const context = await this.openSession();
-        let result: Array<string> | undefined = undefined;
-        const { session } = context;
-        await session.executeRead(async transaction => {
-            const models = await this.query('MATCH(m:ConcertoModels where m.identifier="000") return m.content;', undefined, transaction);
-            if (models.records.length === 1) {
-                result = models.records[0].get('m.content').split(MODELS_SEP).filter(m => m.trim().length > 0);
-            }
-        });
-        await this.closeSession(context);
-        return result;
+        try {
+            let result: Array<string> | undefined = undefined;
+            const { session } = context;
+            await session.executeRead(async transaction => {
+                const models = await this.readQuery('MATCH(m:ConcertoModels where m.identifier="000") return m.content;', undefined, transaction);
+                if (models.records.length === 1) {
+                    result = models.records[0].get('m.content').split(MODELS_SEP).filter(m => m.trim().length > 0);
+                }
+            });
+            return result;
+        }
+        finally {
+            await this.closeSession(context);
+        }
     }
 
     /**
@@ -263,25 +271,29 @@ export class GraphModel {
     async dropIndexes() {
         this.options.logger?.info('Dropping indexes...');
         const { session } = await this.openSession();
-        await session?.executeWrite(async tx => {
-            const graphNodes = this.getGraphNodeDeclarations();
-            for (let n = 0; n < graphNodes.length; n++) {
-                const graphNode = graphNodes[n];
-                await tx.run(`DROP CONSTRAINT constraint_${graphNode.getName().toLowerCase()}_identifier IF EXISTS`);
-                const vectorProperties = graphNode.getProperties().filter(p => p.getDecorator('vector_index'));
-                for (let i = 0; i < vectorProperties.length; i++) {
-                    const vectorProperty = vectorProperties[i];
-                    const indexName = this.getPropertyVectorIndexName(graphNode, vectorProperty);
-                    await tx.run(`DROP INDEX ${indexName} IF EXISTS`);
+        try {
+            await session?.executeWrite(async tx => {
+                const graphNodes = this.getGraphNodeDeclarations();
+                for (let n = 0; n < graphNodes.length; n++) {
+                    const graphNode = graphNodes[n];
+                    await tx.run(`DROP CONSTRAINT constraint_${graphNode.getName().toLowerCase()}_identifier IF EXISTS`);
+                    const vectorProperties = graphNode.getProperties().filter(p => p.getDecorator('vector_index'));
+                    for (let i = 0; i < vectorProperties.length; i++) {
+                        const vectorProperty = vectorProperties[i];
+                        const indexName = this.getPropertyVectorIndexName(graphNode, vectorProperty);
+                        await tx.run(`DROP INDEX ${indexName} IF EXISTS`);
+                    }
+                    const fullTextIndex = this.getFullTextIndex(graphNode);
+                    if (fullTextIndex) {
+                        const indexName = this.getFullTextIndexName(graphNode);
+                        await tx.run(`DROP INDEX ${indexName} IF EXISTS`);
+                    }
                 }
-                const fullTextIndex = this.getFullTextIndex(graphNode);
-                if (fullTextIndex) {
-                    const indexName = this.getFullTextIndexName(graphNode);
-                    await tx.run(`DROP INDEX ${indexName} IF EXISTS`);
-                }
-            }
-        })
-        await session.close();
+            })
+        }
+        finally {
+            await session.close();
+        }
         this.options.logger?.info('Drop indexes completed');
     }
 
@@ -301,14 +313,18 @@ export class GraphModel {
     async createConstraints() {
         this.options.logger?.info('Creating constraints...');
         const { session } = await this.openSession();
-        await session.executeWrite(async tx => {
-            const graphNodes = this.getGraphNodeDeclarations();
-            for (let n = 0; n < graphNodes.length; n++) {
-                const graphNode = graphNodes[n];
-                await tx.run(`CREATE CONSTRAINT constraint_${graphNode.getName().toLowerCase()}_identifier IF NOT EXISTS FOR (a:${graphNode.getName()}) REQUIRE a.${graphNode.getIdentifierFieldName()} IS UNIQUE`);
-            }
-        })
-        await session.close();
+        try {
+            await session.executeWrite(async tx => {
+                const graphNodes = this.getGraphNodeDeclarations();
+                for (let n = 0; n < graphNodes.length; n++) {
+                    const graphNode = graphNodes[n];
+                    await tx.run(`CREATE CONSTRAINT constraint_${graphNode.getName().toLowerCase()}_identifier IF NOT EXISTS FOR (a:${graphNode.getName()}) REQUIRE a.${graphNode.getIdentifierFieldName()} IS UNIQUE`);
+                }
+            })
+        }
+        finally {
+            await session.close();
+        }
         this.options.logger?.info('Create constraints completed');
     }
 
@@ -355,15 +371,19 @@ export class GraphModel {
     async createVectorIndexes() {
         this.options.logger?.info('Creating vector indexes...');
         const { session } = await this.openSession();
-        await session.executeWrite(async tx => {
-            const indexes = this.getVectorIndexes();
-            for (let n = 0; n < indexes.length; n++) {
-                const index = indexes[n];
-                // console.log(JSON.stringify(index, null, 2));
-                await tx.run(`CALL db.index.vector.createNodeIndex("${index.indexName}", "${index.type}", "${index.embeddingProperty}", ${index.size}, "${index.indexType}")`);
-            }
-        })
-        await session.close();
+        try {
+            await session.executeWrite(async tx => {
+                const indexes = this.getVectorIndexes();
+                for (let n = 0; n < indexes.length; n++) {
+                    const index = indexes[n];
+                    // console.log(JSON.stringify(index, null, 2));
+                    await tx.run(`CALL db.index.vector.createNodeIndex("${index.indexName}", "${index.type}", "${index.embeddingProperty}", ${index.size}, "${index.indexType}")`);
+                }
+            })
+        }
+        finally {
+            await session.close();
+        }
         this.options.logger?.info('Create vector indexes completed');
     }
 
@@ -373,15 +393,19 @@ export class GraphModel {
     async createFullTextIndexes() {
         this.options.logger?.info('Creating full text indexes...');
         const { session } = await this.openSession();
-        await session.executeWrite(async tx => {
-            const indexes = this.getFullTextIndexes();
-            for (let n = 0; n < indexes.length; n++) {
-                const index = indexes[n];
-                const props = index.properties.map(p => `n.${p}`);
-                await tx.run(`CREATE FULLTEXT INDEX ${index.indexName} FOR (n:${index.type}) ON EACH [${props.join(',')}];`);
-            }
-        })
-        await session.close();
+        try {
+            await session.executeWrite(async tx => {
+                const indexes = this.getFullTextIndexes();
+                for (let n = 0; n < indexes.length; n++) {
+                    const index = indexes[n];
+                    const props = index.properties.map(p => `n.${p}`);
+                    await tx.run(`CREATE FULLTEXT INDEX ${index.indexName} FOR (n:${index.type}) ON EACH [${props.join(',')}];`);
+                }
+            })
+        }
+        finally {
+            await session.close();
+        }
         this.options.logger?.info('Create full text indexes completed');
     }
 
@@ -390,10 +414,14 @@ export class GraphModel {
      */
     async deleteGraph() {
         const { session } = await this.openSession();
-        await session.executeWrite(async tx => {
-            await tx.run('MATCH (n) DETACH DELETE n')
-        })
-        await session.close();
+        try {
+            await session.executeWrite(async tx => {
+                return tx.run('MATCH (n) DETACH DELETE n')
+            })
+        }
+        finally {
+            await session.close();
+        }
     }
 
     /**
@@ -418,7 +446,7 @@ export class GraphModel {
     YIELD node AS similar, score
     MATCH (similar)
     RETURN similar.identifier as identifier, similar.${propertyName} as content, score limit ${count}`;
-        const queryResult = await this.query(q);
+        const queryResult = await this.readQuery(q);
         return queryResult ? queryResult.records.map(v => {
             return {
                 identifier: v.get('identifier'),
@@ -429,13 +457,13 @@ export class GraphModel {
     }
 
     /**
-     * Runs a Cypher query
+     * Runs a Cypher read query
      * @param cypher the Cypher query to execute
      * @param parameters any parameters for the query
      * @param tx the transaction
      * @returns the query results
      */
-    async query(cypher: string, parameters?: PropertyBag, tx?: ManagedTransaction) {
+    async readQuery(cypher: string, parameters?: PropertyBag, tx?: ManagedTransaction) {
         if (this.options.logQueries) {
             this.options.logger?.info(cypher);
         }
@@ -446,12 +474,47 @@ export class GraphModel {
         }
         else {
             const { session } = await this.openSession();
-            const result = await session.executeRead(async tx => {
-                return tx.run(cypher, parameters);
-            })
-            // this.options.logger?.info('query', result);
-            await session.close();
-            return result;
+            try {
+                const result = await session.executeRead(async tx => {
+                    return tx.run(cypher, parameters);
+                })
+                // this.options.logger?.info('query', result);    
+                return result;
+            }
+            finally {
+                await session.close();
+            }
+        }
+    }
+
+    /**
+     * Runs a Cypher write query
+     * @param cypher the Cypher query to execute
+     * @param parameters any parameters for the query
+     * @param tx the transaction
+     * @returns the query results
+     */
+    async writeQuery(cypher: string, parameters?: PropertyBag, tx?: ManagedTransaction) {
+        if (this.options.logQueries) {
+            this.options.logger?.info(cypher);
+        }
+        if (tx) {
+            const ret = tx.run(cypher, parameters)
+            // this.options.logger?.info('query', ret);
+            return ret;
+        }
+        else {
+            const { session } = await this.openSession();
+            try {
+                const result = await session.executeWrite(async tx => {
+                    return tx.run(cypher, parameters);
+                })
+                // this.options.logger?.info('query', result);
+                return result;
+            }
+            finally {
+                await session.close();
+            }
         }
     }
 
@@ -478,7 +541,7 @@ export class GraphModel {
         keys.forEach((key) => {
             set += `SET n.${key}=$${key} `
         })
-        return this.query(`MERGE (n:${decl.getName()}{identifier: $id}) ${set}`, { id, ...newProperties }, transaction);
+        return this.writeQuery(`MERGE (n:${decl.getName()}{identifier: $id}) ${set}`, { id, ...newProperties }, transaction);
     }
 
     /**
@@ -490,7 +553,7 @@ export class GraphModel {
      */
     async deleteNode(transaction: ManagedTransaction, typeName: string, identifier: string) {
         const decl = this.getGraphNodeDeclaration(typeName);
-        return this.query(`MATCH (n:${decl.getName()} {identifier: '${identifier}'}) DETACH DELETE n`, undefined, transaction);
+        return this.writeQuery(`MATCH (n:${decl.getName()} {identifier: '${identifier}'}) DETACH DELETE n`, undefined, transaction);
     }
 
     /**
@@ -521,9 +584,28 @@ export class GraphModel {
         if (decorator.getArguments().length !== 1) {
             throw new Error(`Property @label decorator on ${sourcePropertyName} must have a single argument`);
         }
-
+        // check source and target nodes exist
+        if(!await this.nodeExists(sourceType, sourceIdentifier)) {
+            throw new Error(`Source node of type ${sourceType} and with identifier ${sourceIdentifier} does not exist.`);
+        }
+        if(!await this.nodeExists(targetType, targetIdentifier)) {
+            throw new Error(`Target node of type ${targetType} and with identifier ${targetIdentifier} does not exist.`);
+        }
         const relationshipType = decorator.getArguments()[0].toString();
-        return this.query(`MATCH(source:${sourceDecl.getName()} {identifier: '${sourceIdentifier}'}) MATCH(target:${targetDecl.getName()} {identifier: '${targetIdentifier}'})MERGE (source)-[:${relationshipType}]->(target)`, {}, transaction);
+        return this.writeQuery(`MATCH(source:${sourceDecl.getName()} {identifier: '${sourceIdentifier}'}) MATCH(target:${targetDecl.getName()} {identifier: '${targetIdentifier}'})MERGE (source)-[:${relationshipType}]->(target)`, {}, transaction);
+    }
+
+    /**
+     * Checks whether a node of a given type and with a given identifier exists in the graph
+     * @param type the type identifier
+     * @param identifier the identifier of the node
+     * @returns true if the node exists
+     */
+    async nodeExists(type: string, identifier:string): Promise<boolean> {
+        const decl = this.getGraphNodeDeclaration(type);
+        const queryResult = await this.readQuery(`MATCH (n:${decl.getName()} WHERE n.identifier='${identifier}') RETURN n;`);
+        const result = (queryResult && queryResult.records.length > 0);
+        return result;
     }
 
     /**
@@ -535,7 +617,7 @@ export class GraphModel {
      */
     private async mergeEmbeddingCacheNode(transaction, text: string): Promise<EmbeddingCacheNode> {
         const embeddingId = getTextChecksum(text);
-        const queryResult = await this.query('MATCH (n:EmbeddingCacheNode{identifier:$id}) RETURN n',
+        const queryResult = await this.readQuery('MATCH (n:EmbeddingCacheNode{identifier:$id}) RETURN n',
             { id: embeddingId }, transaction);
         if (queryResult && queryResult.records.length > 0) {
             this.options.logger?.info('EmbeddingCacheNode cache hit');
@@ -581,6 +663,9 @@ export class GraphModel {
             transaction?.rollback();
             throw err;
         }
+        finally {
+            this.closeSession(context);
+        }
     }
 
     /**
@@ -613,7 +698,7 @@ export class GraphModel {
             const context = await this.openSession();
             const transaction = await context.session.beginTransaction();
             try {
-                const queryResult = await this.query(cypher);
+                const queryResult = await this.readQuery(cypher);
                 const ret = queryResult ? queryResult.records.map(v => {
                     const result = {};
                     v.keys.forEach(k => {
@@ -628,6 +713,9 @@ export class GraphModel {
                 this.options.logger?.error((err as object).toString());
                 transaction?.rollback();
                 throw err;
+            }
+            finally {
+                this.closeSession(context);
             }
         }
         throw new Error(`Failed to convert to Cypher query ${text}`);
@@ -652,7 +740,7 @@ export class GraphModel {
             const props = fullTextIndex.properties.map(p => `node.${p}`);
             props.push('node.identifier');
             const q = `CALL db.index.fulltext.queryNodes("${indexName}", "${searchText}") YIELD node, score RETURN ${props.join(',')}, score limit ${count}`;
-            const queryResult = await this.query(q);
+            const queryResult = await this.readQuery(q);
             const ret = queryResult ? queryResult.records.map(v => {
                 const result = {};
                 fullTextIndex.properties.forEach(p => {
@@ -715,7 +803,7 @@ export class GraphModel {
                                 if (key !== '$class') {
                                     const childValue = value[childKey];
                                     // TODO DCS - support map values that are objects...
-                                    newProperties[`${key}_${childKey}`] = childValue;
+                                    newProperties[`${key}_${childKey}`.replace(/ /g, "_").replace(/./g, "_")] = childValue;
                                 }
                             });
                         }
@@ -739,7 +827,7 @@ export class GraphModel {
         const notRelationships = graphNode.getProperties().filter(p => !(p as RelationshipDeclaration).isRelationship);
         const notVectorIndexed = notRelationships.filter(p => vectorIndexes.find(vi => vi.embeddingProperty === p.getName()) === undefined);
         // TODO DCS - this means that complex types must always be optional!
-        const notComplex = notVectorIndexed.filter( p => toOpenAiToolType(p.getType()));
+        const notComplex = notVectorIndexed.filter(p => toOpenAiToolType(p.getType()));
         const required = notComplex.filter(p => !p.isOptional()).map(p => p.getName());
         const properties = {};
         notComplex.forEach(p => {
@@ -771,7 +859,7 @@ export class GraphModel {
     getTools(options: ToolOptions): Array<RunnableToolFunction<any>> {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result: Array<RunnableToolFunction<any>> = [];
-        if(options.currentDateTime) {
+        if (options.currentDateTime) {
             result.push({
                 type: "function",
                 function: {
@@ -803,7 +891,7 @@ export class GraphModel {
                         function: (async (args: { name: string }) => {
                             const { name } = args;
                             try {
-                                const result = await this.query(`MATCH (n:${node.getName()} WHERE n.identifier='${name}') RETURN n;`);
+                                const result = await this.readQuery(`MATCH (n:${node.getName()} WHERE n.identifier='${name}') RETURN n;`);
                                 const ret = result ? result.records.map(v => {
                                     const result = {};
                                     v.keys.forEach(k => {
@@ -876,19 +964,23 @@ export class GraphModel {
                         function: {
                             description: `Add a relationship ${relationship.getName()} from node ${node.getName()} to node ${relationship.getType()} to the knowledge graph`,
                             name: `merge_relationship_${node.getName().toLowerCase()}_${relationship.getName().toLowerCase()}`,
-                            function: (async (args: { sourceType: string, sourceIdentfiier: string, targetType: string, targetIdentfiier: string, sourcePropertyName: string }) => {
+                            function: (async (args: { sourceType: string, sourceIdentifier: string, targetType: string, targetIdentifier: string, sourcePropertyName: string }) => {
                                 const context = await this.openSession();
                                 const { session } = context;
                                 try {
                                     await session.executeWrite(async transaction => {
-                                        await this.mergeRelationship(transaction, args.sourceType, args.sourceIdentfiier, args.targetType, args.targetIdentfiier, args.sourcePropertyName);
+                                        return this.mergeRelationship(transaction, args.sourceType, args.sourceIdentifier, args.targetType, args.targetIdentifier, args.sourcePropertyName);
                                     });
-                                    const ret = `created relationship ${relationship.getName()} between source node ${args.sourceIdentfiier} and target node ${args.targetIdentfiier}`;
+                                    const ret = `created relationship ${relationship.getName()} between source node ${args.sourceIdentifier} and target node ${args.targetIdentifier}`;
                                     this.options.logger?.info(ret);
                                     return ret;
                                 }
                                 catch (err) {
+                                    this.options.logger?.error(err);
                                     return `An error occurred: ${err}`;
+                                }
+                                finally {
+                                    this.closeSession(context);
                                 }
                             }),
                             parse: JSON.parse,
@@ -898,20 +990,20 @@ export class GraphModel {
                                     "sourceType": {
                                         "type": "string",
                                     },
-                                    "sourceIdentfiier": {
+                                    "sourceIdentifier": {
                                         "type": "string",
                                     },
                                     "targetType": {
                                         "type": "string",
                                     },
-                                    "targetIdentfiier": {
+                                    "targetIdentifier": {
                                         "type": "string",
                                     },
                                     "sourcePropertyName": {
                                         "type": "string",
                                     }
                                 },
-                                "required": ["sourceType", "sourceIdentfiier", "targetType", "targetIdentfiier", "sourcePropertyName"]
+                                "required": ["sourceType", "sourceIdentifier", "targetType", "targetIdentifier", "sourcePropertyName"]
                             }
                         }
                     });
@@ -923,20 +1015,22 @@ export class GraphModel {
                     function: {
                         description: `Add a node ${node.getName()} to the knowledge graph`,
                         name: `merge_node_${node.getName().toLowerCase()}`,
-                        function: (async (args: { identifier: string }) => {
-                            const { identifier } = args;
+                        function: (async (args) => {
                             const context = await this.openSession();
                             const { session } = context;
                             try {
                                 await session.executeWrite(async transaction => {
-                                    await this.mergeNode(transaction, node.getName(), { identifier });
+                                    return this.mergeNode(transaction, node.getName(), args);
                                 });
-                                const ret = `created node ${node.getName()} with identifier ${identifier}`;
+                                const ret = `created node ${node.getName()} with identifier ${args.identifier}`;
                                 this.options.logger?.info(ret);
                                 return ret;
                             }
                             catch (err) {
                                 return `An error occurred: ${err}`;
+                            }
+                            finally {
+                                this.closeSession(context);
                             }
                         }),
                         parse: JSON.parse,
@@ -1020,5 +1114,85 @@ export class GraphModel {
             }
         }
         return result;
+    }
+
+    /**
+     * Adds sample instances of all types to the graph and creates relationships between them.
+     * Useful for visualizing the model as a graph.
+     */
+    async mergeSamplesToGraph() {
+        const visitor = {
+            visit: async (thing, parameters) => {
+                if (thing.isModelManager?.()) {
+                    await visitor.visitModelManager(thing, parameters);
+                } else if (thing.isModelFile?.()) {
+                    await visitor.visitModelFile(thing, parameters);
+                }
+                if (thing.isClassDeclaration?.()) {
+                    await visitor.visitClassDeclaration(thing, parameters);
+                } else if (thing.isRelationship?.()) {
+                    await visitor.visitRelationshipDeclaration(thing, parameters);
+                }
+            },
+            visitModelManager: async (modelManager, parameters) => {
+                for (const modelFile of modelManager.getModelFiles(true)) {
+                    await modelFile.accept(visitor, parameters);
+                }
+                return null;
+            },
+            visitModelFile: async (modelFile, parameters) => {
+                for (const decl of modelFile.getAllDeclarations()) {
+                    await decl.accept(visitor, parameters);
+                }
+                return null;
+            },
+            visitClassDeclaration: async (thing, parameters) => {
+                if (!thing.isAbstract() && thing.isIdentified() && thing.getNamespace() !== ROOT_NAMESPACE) {
+                    if (parameters.createNodes) {
+                        const context = await this.openSession();
+                        const { session } = context;
+                        try {
+                            await session.executeWrite(async transaction => {
+                                const factory = new Factory(this.modelManager);
+                                const sample = factory.newConcept(thing.getNamespace(), thing.getName(), thing.getName(), { generate: 'sample' });
+                                if (sample.instanceOf(`${ROOT_NAMESPACE}.GraphNode`)) {
+                                    return this.mergeNode(transaction, thing.getName(), sample.toJSON());
+                                }
+                            });
+                        }
+                        finally {
+                            await this.closeSession(context);
+                        }
+                    }
+                    if (parameters.createEdges) {
+                        for (const property of thing.getProperties()) {
+                            await property.accept(visitor, { parent: thing, ...parameters });
+                        }
+                    }
+                }
+            },
+            visitRelationshipDeclaration: async (relationship, parameters) => {
+                if (relationship.getDecorator('label')) {
+                    const context = await this.openSession();
+                    const { session } = context;
+                    try {
+                        await session.executeWrite(async transaction => {
+                            const relClass = this.modelManager.getType(relationship.getFullyQualifiedTypeName());
+                            const assignableClasses = relClass.getAssignableClassDeclarations();
+                            for (let n = 0; n < assignableClasses.length; n++) {
+                                const clazz = assignableClasses[n];
+                                const parentType = parameters.parent.getName();
+                                await this.mergeRelationship(transaction, parentType, parentType, clazz.getName(), clazz.getName(), relationship.getName());
+                            }
+                        });
+                    }
+                    finally {
+                        await this.closeSession(context);
+                    }
+                }
+            },
+        };
+        await this.modelManager.accept(visitor, { createNodes: true });
+        await this.modelManager.accept(visitor, { createEdges: true });
     }
 }

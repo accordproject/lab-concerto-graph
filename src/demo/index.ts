@@ -92,6 +92,7 @@ async function run() {
   // console.log(JSON.stringify(tools, null , 2));
 
   const { session } = context;
+
   await session.executeWrite(async transaction => {
     const address = {
       $class: 'demo.graph@1.0.0.Address',
@@ -108,7 +109,7 @@ async function run() {
     const addressBook = {
       'Dan': 'dan@example.com',
       'Isaac': 'isaac@example.com'
-    };    
+    };
     await graphModel.mergeNode(transaction, 'Movie', { identifier: 'Brazil', summary: 'The film centres on Sam Lowry, a low-ranking bureaucrat trying to find a woman who appears in his dreams while he is working in a mind-numbing job and living in a small apartment, set in a dystopian world in which there is an over-reliance on poorly maintained (and rather whimsical) machines' });
     await graphModel.mergeNode(transaction, 'Movie', { identifier: 'The Man Who Killed Don Quixote', summary: 'Instead of a literal adaptation, Gilliam\'s film was about "an old, retired, and slightly kooky nobleman named Alonso Quixano".' });
     await graphModel.mergeNode(transaction, 'Movie', { identifier: 'Fear and Loathing in Las Vegas', summary: 'Duke, under the influence of mescaline, complains of a swarm of giant bats, and inventories their drug stash. They pick up a young hitchhiker and explain their mission: Duke has been assigned by a magazine to cover the Mint 400 motorcycle race in Las Vegas. They bought excessive drugs for the trip, and rented a red Chevrolet Impala convertible.' });

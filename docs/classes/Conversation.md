@@ -29,7 +29,7 @@ Creates a new Conversation
 
 #### Source
 
-[Conversation.ts:28](https://github.com/accordproject/lab-concerto-graph/blob/9e94edc926719638323f93597ac11c7873b63663/src/Conversation.ts#L28)
+[Conversation.ts:28](https://github.com/accordproject/lab-concerto-graph/blob/3eb3c9ab7fe3c9ea43c73c34d265e10ae6cb03b0/src/Conversation.ts#L28)
 
 ## Properties
 
@@ -65,7 +65,7 @@ the final result message
 
 #### Source
 
-[Conversation.ts:83](https://github.com/accordproject/lab-concerto-graph/blob/9e94edc926719638323f93597ac11c7873b63663/src/Conversation.ts#L83)
+[Conversation.ts:83](https://github.com/accordproject/lab-concerto-graph/blob/3eb3c9ab7fe3c9ea43c73c34d265e10ae6cb03b0/src/Conversation.ts#L83)
 
 ***
 
@@ -83,7 +83,7 @@ the system message for the conversation
 
 #### Source
 
-[Conversation.ts:70](https://github.com/accordproject/lab-concerto-graph/blob/9e94edc926719638323f93597ac11c7873b63663/src/Conversation.ts#L70)
+[Conversation.ts:70](https://github.com/accordproject/lab-concerto-graph/blob/3eb3c9ab7fe3c9ea43c73c34d265e10ae6cb03b0/src/Conversation.ts#L70)
 
 ***
 
@@ -102,7 +102,7 @@ or undefined if a user message has not been added
 
 #### Source
 
-[Conversation.ts:113](https://github.com/accordproject/lab-concerto-graph/blob/9e94edc926719638323f93597ac11c7873b63663/src/Conversation.ts#L113)
+[Conversation.ts:113](https://github.com/accordproject/lab-concerto-graph/blob/3eb3c9ab7fe3c9ea43c73c34d265e10ae6cb03b0/src/Conversation.ts#L113)
 
 ***
 
@@ -128,4 +128,4 @@ all the messages
 
 #### Source
 
-[Conversation.ts:43](https://github.com/accordproject/lab-concerto-graph/blob/9e94edc926719638323f93597ac11c7873b63663/src/Conversation.ts#L43)
+[Conversation.ts:43](https://github.com/accordproject/lab-concerto-graph/blob/3eb3c9ab7fe3c9ea43c73c34d265e10ae6cb03b0/src/Conversation.ts#L43)
