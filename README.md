@@ -9,7 +9,7 @@ tags:
 
 # Concerto Graph
 
-This project uses a [Concerto model](https://concerto.accordproject.org) to define the nodes and edges in a Neo4J graph database and uses the model to validate the properties on the nodes.
+This project uses a [Concerto model](https://concerto.accordproject.org) to define the nodes and edges in a Neo4J graph database and uses the model to validate the properties on the nodes, convert natural language queries into Neo4J Cypher queries and convert natural language text into nodes and edges in the graph.
 
 ![demo](demo.png)
 [Demo](src/demo/index.ts)
@@ -143,7 +143,7 @@ Output:
 ]
 ```
 
-## Similarity Query
+## Similarity (Semantic) Query
 
 ```typescript
     const search = 'Working in a boring job and looking for love.';
@@ -162,7 +162,7 @@ Output:
 ]
 ```
 
-## Chat with your data (Cypher generation)
+## Chat with your data/graph (Cypher generation)
 
 You can also "chat with your data" — converting natural language queries to Neo4J Cypher
 queries and running them over your graph.
